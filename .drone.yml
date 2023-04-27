@@ -7,7 +7,7 @@ steps:
   image: golang:1.20
   commands:
   - go mod download
-  - go build -o modem-map
+  - go build -o modem-map ./cmd/main.go
 
 - name: test
   image: golang:1.20
