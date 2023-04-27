@@ -1,0 +1,11 @@
+[[database]]
+name = "storage1"
+dsn = "user:password@tcp(127.0.0.1:3306)/database1?charset=utf8mb4&parseTime=True&loc=Local"
+
+[[database]]
+name = "storage2"
+dsn = "user:password@tcp(127.0.0.1:5432)/database2?sslmode=disable"
+
+[http]
+templates = "./templates/"
+listen = ":8080"
