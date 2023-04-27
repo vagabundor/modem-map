@@ -1,0 +1,15 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: build
+  image: golang:1.20
+  commands:
+  - go mod download
+  - go build -o modem-map
+
+- name: test
+  image: golang:1.20
+  commands:
+  - go test -v ./...
