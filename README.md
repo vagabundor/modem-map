@@ -25,11 +25,21 @@ Satellite Network Modem Map is a Golang application that displays satellite mode
 
 ### Installation
 
-1. Clone the repository: `git clone https://github.com/your_username/satellite-network-modem-map.git`
-2. Navigate to the cloned directory: `cd satellite-network-modem-map`
+1. Clone the repository: `git clone https://github.com/vagabundor/modem-map.git`
+2. Navigate to the cloned directory: `cd modem-map`
 3. Install dependencies: `go mod tidy`
-4. Copy the `config.example.toml` file to `config.toml` and update the database configuration with your own settings
-5. Start the application: `go run main.go`
+4. Edit `config.toml` and update the database configuration with your own settings
+5. Build the application: `go build -o modem-map cmd/main.go`
+
+## Usage
+
+To start the application, run the following command in the terminal:
+
+```
+./modem-map --config=../internal/config.toml
+```
+
+Please note that a `map.html` file must be located in the `internal/templates` directory specified in the configuration.
 
 ## License
 
