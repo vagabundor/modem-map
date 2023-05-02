@@ -15,7 +15,7 @@ steps:
   - go test -v ./...
 
 - name: deploy-staging
-  image: appleboy/scp
+  image: appleboy/drone-scp
   settings:
     host:
       from_secret: staging_host
