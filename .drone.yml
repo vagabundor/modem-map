@@ -39,4 +39,4 @@ steps:
     password:
       from_secret: staging_password
     script:
-      - sudo systemctl restart modem-map
+      - systemctl restart modem-map
