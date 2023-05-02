@@ -15,16 +15,21 @@ steps:
   - go test -v ./...
 
 - name: deploy-staging
-  image: appleboy/drone-scp
-  settings:
-    host:
+  image: alpine
+  commands:
+    - apk add --no-cache rsync openssh
+    - eval $(ssh-agent)
+    - echo "$STAGING_SSH_KEY" | ssh-add -
+    - rsync -avz --delete --progress -e "ssh -p 22 -o StrictHostKeyChecking=no" ./modem-map $STAGING_USER@$STAGING_HOST:/opt/modem-map/
+    - rsync -avz --delete --progress -e "ssh -p 22 -o StrictHostKeyChecking=no" ./templates/ $STAGING_USER@$STAGING_HOST:/opt/modem-map/
+    environment:
+  environment:
+    STAGING_USER:
+      from_secret: staging_user
+    STAGING_HOST:
       from_secret: staging_host
-    username: root
-    password:
-      from_secret: staging_password
-    source: ./modem-map ./internal/templates/
-    target: /opt/modem-map/
-    command_timeout: 2m
+    STAGING_SSH_KEY:
+      from_secret: staging_ssh_key
 
 - name: restart-app
   image: appleboy/ssh
