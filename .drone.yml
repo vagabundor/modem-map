@@ -13,3 +13,25 @@ steps:
   image: golang:1.20
   commands:
   - go test -v ./...
+
+- name: deploy-staging
+    image: plugins/scp
+    settings:
+      host:
+        from_secret: staging_host
+      username: root
+      password:
+        from_secret: staging_password
+      source: ./modem-map ./internal/templates/
+      target: /opt/modem-map/
+      
+- name: restart-app
+    image: appleboy/ssh
+    settings:
+      host:
+        from_secret: staging_host
+      username: root
+      password:
+        from_secret: staging_password
+      script:
+        - sudo systemctl restart modem-map
