@@ -31,7 +31,7 @@ steps:
       from_secret: staging_ssh_key
 
 - name: restart-app
-  image: appleboy/ssh
+  image: appleboy/drone-ssh
   settings:
     host:
       from_secret: staging_host
