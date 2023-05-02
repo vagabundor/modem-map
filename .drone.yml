@@ -15,7 +15,7 @@ steps:
   - go test -v ./...
 
 - name: deploy-staging
-  image: plugins/scp
+  image: appleboy/scp
   settings:
     host:
       from_secret: staging_host
