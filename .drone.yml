@@ -24,6 +24,7 @@ steps:
       from_secret: staging_password
     source: ./modem-map ./internal/templates/
     target: /opt/modem-map/
+    command_timeout: 2m
 
 - name: restart-app
   image: appleboy/ssh
