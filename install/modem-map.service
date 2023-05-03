@@ -1,0 +1,13 @@
+[Unit]
+Description=Modem Map Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/modem-map
+ExecStart=/opt/modem-map/modem-map --config=/etc/opt/modem-map/config.toml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
