@@ -1,6 +1,6 @@
 # Satellite Network Modem Map
 
-Satellite Network Modem Map is a Golang application that displays satellite modems on a geo map. The information about the modems is obtained from the NMS database. The application supports connecting to multiple NMS databases if multiple satellite hubs are present.
+Satellite Network Modem Map is a Golang application that displays satellite modems of iDirect network on a geo map. The information about the modems is obtained from the NMS database. The application supports connecting to multiple NMS databases if multiple satellite hubs are present.
 
 ![Map](./docs/graphics/map.png)
 
