@@ -20,7 +20,7 @@ steps:
     - apk add --no-cache rsync openssh
     - eval $(ssh-agent)
     - echo "$STAGING_SSH_KEY" | ssh-add -
-    - rsync -avz --progress -e "ssh -p 22 -o StrictHostKeyChecking=no" ./modem-map $STAGING_USER@$STAGING_HOST:/opt/modem-map/
+    - rsync -avz --delete --progress -e "ssh -p 22 -o StrictHostKeyChecking=no" ./modem-map $STAGING_USER@$STAGING_HOST:/opt/modem-map/
     - rsync -avz --progress -e "ssh -p 22 -o StrictHostKeyChecking=no" ./internal/templates/ $STAGING_USER@$STAGING_HOST:/opt/modem-map/templates/
   environment:
     STAGING_USER:
@@ -35,7 +35,8 @@ steps:
   settings:
     host:
       from_secret: staging_host
-    username: root
+    username:
+      from_secret: staging_user
     password:
       from_secret: staging_password
     script:
