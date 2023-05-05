@@ -41,7 +41,7 @@
   OpenStreetMap contributors</a></p>
   <script>
       const key = '1x8jLSMUSvmzFnHqiOSb';
-      const map = L.map('map').setView([0, 0], 1);
+      const map = L.map('map', { attributionControl:false }).setView([0, 0], 1);
       const gl = L.maplibreGL({
         attribution:
           "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
