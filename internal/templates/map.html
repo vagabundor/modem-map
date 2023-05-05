@@ -1,15 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>Modems Map</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.css" />
-    <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel='stylesheet' />
-    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.17/leaflet-maplibre-gl.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for HTML5 for Linux version 5.7.45">
+  <meta name="viewport" content=
+  "initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Modems Map</title>
+  <script src=
+  "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.js"></script>
+  <link rel="stylesheet" href=
+  "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.css">
+  <link href=
+  "https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel=
+  'stylesheet'>
+  <script src=
+  "https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+  <script src=
+  "https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.17/leaflet-maplibre-gl.js"></script>
+  <script src=
+  "https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
       #map {
         position: absolute;
         top: 0;
@@ -17,34 +27,19 @@
         bottom: 0;
         left: 0;
       }
-    </style>
-  </head>
-  <body>
-    <div id="map">
-      <a
-        href="https://www.maptiler.com"
-        style="
-          position: absolute;
-          left: 10px;
-          bottom: 10px;
-          z-index: 999;
-        "
-        ><img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"
-      /></a>
-    </div>
-    <p>
-      <a
-        href="https://www.maptiler.com/copyright/"
-        target="_blank"
-        >© MapTiler</a
-      >
-      <a
-        href="https://www.openstreetmap.org/copyright"
-        target="_blank"
-        >© OpenStreetMap contributors</a
-      >
-    </p>
-    <script>
+  </style>
+</head>
+<body>
+  <div id="map">
+    <a href="https://www.maptiler.com" style=
+    "position: absolute; left: 10px; bottom: 10px; z-index: 999;"><img src="https://api.maptiler.com/resources/logo.svg"
+    alt="MapTiler logo"></a>
+  </div>
+  <p><a href="https://www.maptiler.com/copyright/" target=
+  "_blank">© MapTiler</a> <a href=
+  "https://www.openstreetmap.org/copyright" target="_blank">©
+  OpenStreetMap contributors</a></p>
+  <script>
       const key = '1x8jLSMUSvmzFnHqiOSb';
       const map = L.map('map').setView([0, 0], 1);
       const gl = L.maplibreGL({
@@ -60,7 +55,7 @@
           method: 'GET',
           dataType: 'json',
           success: function (data) {
-			console.log(data);
+                        console.log(data);
             displayObjects(data);
           },
           error: function (err) {
@@ -69,29 +64,33 @@
         });
       }
 
-function displayObjects(objects) {
+  function displayObjects(objects) {
   // Create and add markers to the map
   for (var i = 0; i < objects.length; i++) {
     var object = objects[i];
-    var marker = L.marker([object.GeoLocation.Lat, object.GeoLocation.Long]).addTo(map);
+    
+    // Check if coordinates are not zero
+    if (object.GeoLocation.Lat !== 0 && object.GeoLocation.Long !== 0) {
+      var marker = L.marker([object.GeoLocation.Lat, object.GeoLocation.Long]).addTo(map);
 
-    marker.on('click', (function (marker, object) {
-      return function () {
-        fetchDetailedInfo(marker, object);
-      };
-    })(marker, object));
+      marker.on('click', (function (marker, object) {
+        return function () {
+          fetchDetailedInfo(marker, object);
+        };
+      })(marker, object));
+    }
+   }
   }
-}
 
-// Fetch detailed information about the object and display it in the popup
-function fetchDetailedInfo(marker, object) {
+  // Fetch detailed information about the object and display it in the popup
+  function fetchDetailedInfo(marker, object) {
   $.ajax({
     url: './modems/' + object.HubId + '/' + object.ID, // Replace with your API-endpoint
     method: 'GET',
     dataType: 'json',
     success: function (data) {
       var popupContent = '<b>' + data.NetModemName + '</b>' +
-		'<br>ID: ' + data.ID +
+                '<br>ID: ' + data.ID +
         '<br>ActiveStatus: ' + data.ActiveStatus +
         '<br>ModemSn: ' + data.ModemSn +
         '<br>Model: ' + data.Model +
@@ -106,12 +105,12 @@ function fetchDetailedInfo(marker, object) {
       console.error('Error while fetching detailed information:', err);
     },
   });
-}
+  }
 
   // Initialization on page loading
   $(document).ready(function () {
     fetchObjects();
   });
-</script>
+  </script>
 </body>
 </html>
