@@ -46,11 +46,12 @@ func (sq Repo) GetAllShort() ([]modem.ModemShort, error) {
 	var allModems []modem.ModemShort
 	for i, db := range sq.dbs {
 		result := db.Table("NetModem AS nm").
-			Select("nm.NetModemId, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, " +
-				"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, " +
+			Select("nm.NetModemId, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, "+
+				"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
 				"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest").
 			Joins("LEFT JOIN Location AS loc ON nm.LocationID = loc.LocationID").
 			Joins("LEFT JOIN GeoLocation AS gl ON loc.GeoLocationID = gl.GeoLocationID").
+			Where("nm.TypeId = ?", 3).
 			Find(&modems)
 
 		if result.Error != nil {
@@ -86,6 +87,7 @@ func (sq Repo) Get(id modem.ID) (modem.Modem, error) {
 		Joins("LEFT JOIN BUC AS buc ON ra.BUCID = buc.BUCID").
 		Joins("LEFT JOIN LNB AS lnb ON ra.LNBID = lnb.LNBID").
 		Where("nm.NetModemId = ?", id.NetModemID).
+		Where("nm.TypeId = ?", 3).
 		First(&m)
 
 	if result.Error != nil {
@@ -116,6 +118,7 @@ func (sq Repo) GetShort(id modem.ID) (modem.ModemShort, error) {
 		Joins("LEFT JOIN Location ON NetModem.LocationID = Location.LocationID").
 		Joins("LEFT JOIN GeoLocation gl ON Location.GeoLocationID = gl.GeoLocationID").
 		Where("NetModem.NetModemId = ?", id.NetModemID).
+		Where("nm.TypeId = ?", 3).
 		First(&m)
 
 	if result.Error != nil {
@@ -146,6 +149,7 @@ func (sq Repo) GetAll() ([]modem.Modem, error) {
 			Joins("LEFT JOIN Reflector AS r ON ra.ReflectorID = r.ReflectorID").
 			Joins("LEFT JOIN BUC AS buc ON ra.BUCID = buc.BUCID").
 			Joins("LEFT JOIN LNB AS lnb ON ra.LNBID = lnb.LNBID").
+			Where("nm.TypeId = ?", 3).
 			Find(&modems)
 
 		if result.Error != nil {
