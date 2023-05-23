@@ -46,7 +46,7 @@ func (sq Repo) GetAllShort() ([]modem.ModemShort, error) {
 	var allModems []modem.ModemShort
 	for i, db := range sq.dbs {
 		result := db.Table("NetModem AS nm").
-			Select("nm.NetModemId, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, "+
+			Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, "+
 				"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
 				"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest").
 			Joins("LEFT JOIN Location AS loc ON nm.LocationID = loc.LocationID").
@@ -76,7 +76,7 @@ func (sq Repo) Get(id modem.ID) (modem.Modem, error) {
 
 	db := sq.dbs[id.HubID]
 	result := db.Table("NetModem AS nm").
-		Select("nm.NetModemId, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType, "+
+		Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType, "+
 			"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
 			"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest, "+
 			"r.Size, buc.ManufacturerPartNum AS Buc, lnb.ManufacturerPartNum AS Lnb").
@@ -111,13 +111,13 @@ func (sq Repo) GetShort(id modem.ID) (modem.ModemShort, error) {
 	}
 
 	db := sq.dbs[id.HubID]
-	result := db.Table("NetModem").
-		Select("NetModem.NetModemID, NetModem.ModemSn, NetModem.NetModemName, NetModem.ActiveStatus, "+
+	result := db.Table("NetModem AS nm").
+		Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, "+
 			"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
 			"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest").
-		Joins("LEFT JOIN Location ON NetModem.LocationID = Location.LocationID").
+		Joins("LEFT JOIN Location ON nm.LocationID = Location.LocationID").
 		Joins("LEFT JOIN GeoLocation gl ON Location.GeoLocationID = gl.GeoLocationID").
-		Where("NetModem.NetModemId = ?", id.NetModemID).
+		Where("nm.NetModemId = ?", id.NetModemID).
 		Where("nm.NetModemTypeId = ?", 3).
 		First(&m)
 
@@ -139,7 +139,7 @@ func (sq Repo) GetAll() ([]modem.Modem, error) {
 	var allModems []modem.Modem
 	for i, db := range sq.dbs {
 		result := db.Table("NetModem AS nm").
-			Select(`nm.NetModemId, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType,
+			Select(`nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType,
 		gl.LatDegrees, gl.LatMinutes, gl.LatSeconds,
 		gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest,
 		r.Size, buc.ManufacturerPartNum AS Buc, lnb.ManufacturerPartNum AS Lnb`).

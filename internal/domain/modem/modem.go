@@ -15,6 +15,7 @@ type Geo struct {
 type ID struct {
 	NetModemID int `gorm:"column:NetModemId;type:int(11)"`
 	HubID      int
+	DID        int `gorm:"column:DID;type:int(10)"`
 }
 
 // Short version of Modem
