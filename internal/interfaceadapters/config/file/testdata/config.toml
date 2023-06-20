@@ -1,10 +1,20 @@
-[[database]]
-name = "storage1"
+[[hub]]
+name = "hub1"
 dsn = "user:password@tcp(127.0.0.1:3306)/database1?charset=utf8mb4&parseTime=True&loc=Local"
+[hub.snmp]
+address = "127.0.0.1"
+port = 161
+community = "public"
+version = 0x1
 
-[[database]]
-name = "storage2"
-dsn = "user:password@tcp(127.0.0.1:5432)/database2?sslmode=disable"
+[[hub]]
+name = "hub2"
+dsn = "user:password@tcp(10.0.0.1:5432)/database2?sslmode=disable"
+[hub.snmp]
+address = "10.0.0.1"
+port = 161
+community = "public"
+version = 0x1
 
 [http]
 templates = "./templates/"
