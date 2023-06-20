@@ -17,19 +17,19 @@ type Repo struct {
 }
 
 // InitDatabase opens databases
-func InitDatabase(dbconfigs []config.DbConfig) ([]*gorm.DB, map[int]string, error) {
+func InitDatabase(hubconfigs []config.HubConfig) ([]*gorm.DB, map[int]string, error) {
 	var dbs []*gorm.DB
 	var err error
 	names := make(map[int]string)
 
-	for i, dbconfig := range dbconfigs {
+	for i, hubconfig := range hubconfigs {
 		newLogger := logger.Default.LogMode(logger.Silent)
-		db, err := gorm.Open(mysql.Open(dbconfig.Dsn), &gorm.Config{Logger: newLogger})
+		db, err := gorm.Open(mysql.Open(hubconfig.Dsn), &gorm.Config{Logger: newLogger})
 		if err != nil {
 			return nil, nil, err
 		}
 		dbs = append(dbs, db)
-		names[i] = dbconfig.Dbname
+		names[i] = hubconfig.Hubname
 	}
 	return dbs, names, err
 }
@@ -41,10 +41,10 @@ func NewRepo(dbs []*gorm.DB, names map[int]string) Repo {
 }
 
 // GetAllShort Returns all short versions of modems
-func (sq Repo) GetAllShort() ([]modem.ModemShort, error) {
-	var modems []modem.ModemShort
-	var allModems []modem.ModemShort
+func (sq Repo) GetAllShort() ([]*modem.ModemShort, error) {
+	var allModems []*modem.ModemShort
 	for i, db := range sq.dbs {
+		var modems []*modem.ModemShort
 		result := db.Table("NetModem AS nm").
 			Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, "+
 				"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
@@ -66,12 +66,12 @@ func (sq Repo) GetAllShort() ([]modem.ModemShort, error) {
 }
 
 // Get Returns the Modem with provided hub id and modem id
-func (sq Repo) Get(id modem.ID) (modem.Modem, error) {
-	var m modem.Modem
+func (sq Repo) Get(id modem.ID) (*modem.Modem, error) {
+	var m *modem.Modem
 
 	// Check if id.HubID is not out of range dbs slice
 	if !(id.HubID >= 0 && id.HubID < len(sq.dbs)) {
-		return modem.Modem{}, fmt.Errorf("no repository found with id %d", id.HubID)
+		return nil, fmt.Errorf("no repository found with id %d", id.HubID)
 	}
 
 	db := sq.dbs[id.HubID]
@@ -91,7 +91,7 @@ func (sq Repo) Get(id modem.ID) (modem.Modem, error) {
 		First(&m)
 
 	if result.Error != nil {
-		return modem.Modem{}, result.Error
+		return nil, result.Error
 	}
 	// If we have modem in result we change HubID
 	if result.RowsAffected > 0 {
@@ -102,12 +102,12 @@ func (sq Repo) Get(id modem.ID) (modem.Modem, error) {
 }
 
 // GetShort Returns the short version of modem with provided hub id and modem id
-func (sq Repo) GetShort(id modem.ID) (modem.ModemShort, error) {
-	var m modem.ModemShort
+func (sq Repo) GetShort(id modem.ID) (*modem.ModemShort, error) {
+	var m *modem.ModemShort
 
 	//Check if id.HubID is not out of range dbs slice
 	if !(id.HubID >= 0 && id.HubID < len(sq.dbs)) {
-		return modem.ModemShort{}, fmt.Errorf("no repository found with id %d", id.HubID)
+		return nil, fmt.Errorf("no repository found with id %d", id.HubID)
 	}
 
 	db := sq.dbs[id.HubID]
@@ -122,7 +122,7 @@ func (sq Repo) GetShort(id modem.ID) (modem.ModemShort, error) {
 		First(&m)
 
 	if result.Error != nil {
-		return modem.ModemShort{}, result.Error
+		return nil, result.Error
 	}
 
 	//If we have modem in result we change HubID
@@ -134,10 +134,10 @@ func (sq Repo) GetShort(id modem.ID) (modem.ModemShort, error) {
 }
 
 // GetAll Returns all stored modems
-func (sq Repo) GetAll() ([]modem.Modem, error) {
-	var modems []modem.Modem
-	var allModems []modem.Modem
+func (sq Repo) GetAll() ([]*modem.Modem, error) {
+	var allModems []*modem.Modem
 	for i, db := range sq.dbs {
+		var modems []*modem.Modem
 		result := db.Table("NetModem AS nm").
 			Select(`nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType,
 		gl.LatDegrees, gl.LatMinutes, gl.LatSeconds,
@@ -153,7 +153,7 @@ func (sq Repo) GetAll() ([]modem.Modem, error) {
 			Find(&modems)
 
 		if result.Error != nil {
-			return []modem.Modem{}, result.Error
+			return nil, result.Error
 		}
 
 		for _, m := range modems {

@@ -16,22 +16,22 @@ import (
 )
 
 // NewRepoWithDb constructor for testing purposes
-func NewRepoWithDb(dbconfigs []config.DbConfig, db *gorm.DB) (Repo, error) {
+func NewRepoWithDb(hubconfigs []config.HubConfig, db *gorm.DB) (Repo, error) {
 	var repo Repo
 	repo.names = make(map[int]string)
 	if db == nil {
 		return Repo{}, fmt.Errorf("failed to initialize databases")
 	}
-	for i, dbconfig := range dbconfigs {
+	for i, hubconfig := range hubconfigs {
 		repo.dbs = append(repo.dbs, db)
-		repo.names[i] = dbconfig.Dbname
+		repo.names[i] = hubconfig.Hubname
 	}
 	return repo, nil
 }
 
 func TestRepo_GetAllShort(t *testing.T) {
 	// Create the mock data
-	mockModems := []modem.ModemShort{
+	mockModems := []*modem.ModemShort{
 		{
 			ID: modem.ID{
 				NetModemID: 1,
@@ -77,16 +77,16 @@ func TestRepo_GetAllShort(t *testing.T) {
 	// Create the test cases
 	testCases := []struct {
 		name          string
-		dbConfigs     []config.DbConfig
+		dbConfigs     []config.HubConfig
 		mockSetupFunc func(sqlmock.Sqlmock)
-		expected      []modem.ModemShort
+		expected      []*modem.ModemShort
 		expectedErr   error
 	}{
 		{
 			name: "Success",
-			dbConfigs: []config.DbConfig{
-				{Dbname: "test1", Dsn: ""},
-				{Dbname: "test2", Dsn: ""},
+			dbConfigs: []config.HubConfig{
+				{Hubname: "test1", Dsn: ""},
+				{Hubname: "test2", Dsn: ""},
 			},
 			mockSetupFunc: func(mock sqlmock.Sqlmock) {
 				// Add expectation for the "SELECT VERSION()" query
@@ -158,7 +158,7 @@ func TestRepo_GetAllShort(t *testing.T) {
 }
 
 func TestRepo_Get(t *testing.T) {
-	mockModem := modem.Modem{
+	mockModem := &modem.Modem{
 		ModemShort: modem.ModemShort{
 			ID: modem.ID{
 				NetModemID: 1,
@@ -187,17 +187,17 @@ func TestRepo_Get(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		dbConfigs     []config.DbConfig
+		dbConfigs     []config.HubConfig
 		mockSetupFunc func(sqlmock.Sqlmock)
 		input         modem.ID
-		expected      modem.Modem
+		expected      *modem.Modem
 		expectedErr   error
 	}{
 		{
 			name: "Success",
-			dbConfigs: []config.DbConfig{
-				{Dbname: "test1", Dsn: ""},
-				{Dbname: "test2", Dsn: ""},
+			dbConfigs: []config.HubConfig{
+				{Hubname: "test1", Dsn: ""},
+				{Hubname: "test2", Dsn: ""},
 			},
 			mockSetupFunc: func(mock sqlmock.Sqlmock) {
 				// Add expectation for the "SELECT VERSION()" query
@@ -221,9 +221,9 @@ func TestRepo_Get(t *testing.T) {
 		},
 		{
 			name: "Not found",
-			dbConfigs: []config.DbConfig{
-				{Dbname: "test1", Dsn: ""},
-				{Dbname: "test2", Dsn: ""},
+			dbConfigs: []config.HubConfig{
+				{Hubname: "test1", Dsn: ""},
+				{Hubname: "test2", Dsn: ""},
 			},
 			mockSetupFunc: func(mock sqlmock.Sqlmock) {
 				// Add expectation for the "SELECT VERSION()" query
@@ -238,20 +238,20 @@ func TestRepo_Get(t *testing.T) {
 						"LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "ReflectorSize", "Buc", "Lnb"}))
 			},
 			input:       modem.ID{NetModemID: 2, HubID: 0},
-			expected:    modem.Modem{},
+			expected:    nil,
 			expectedErr: gorm.ErrRecordNotFound,
 		},
 		{
 			name: "HubID out of range",
-			dbConfigs: []config.DbConfig{
-				{Dbname: "test",
+			dbConfigs: []config.HubConfig{
+				{Hubname: "test",
 					Dsn: ""},
 			},
 			mockSetupFunc: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery("^SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow("5.7.32"))
 			},
 			input:       modem.ID{NetModemID: 1, HubID: 100}, // HubID out of range
-			expected:    modem.Modem{},
+			expected:    nil,
 			expectedErr: fmt.Errorf("no repository found with id %d", 100),
 		},
 	}
@@ -276,7 +276,11 @@ func TestRepo_Get(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			require.Equal(t, tc.expected, result)
+			if result != nil && tc.expected != nil {
+				require.Equal(t, *tc.expected, *result)
+			} else if result != tc.expected {
+				t.Errorf("expected %v, got %v", tc.expected, result)
+			}
 
 			err = mock.ExpectationsWereMet()
 			require.NoError(t, err)
@@ -286,7 +290,7 @@ func TestRepo_Get(t *testing.T) {
 
 func TestRepo_GetShort(t *testing.T) {
 	// Create the mock data
-	mockModem := modem.ModemShort{
+	mockModem := &modem.ModemShort{
 		ID: modem.ID{
 			NetModemID: 1,
 			HubID:      0,
@@ -310,17 +314,17 @@ func TestRepo_GetShort(t *testing.T) {
 	// Create the test case
 	testCases := []struct {
 		name          string
-		dbConfig      config.DbConfig
+		dbConfig      config.HubConfig
 		mockSetupFunc func(sqlmock.Sqlmock)
 		inputID       modem.ID
-		expected      modem.ModemShort
+		expected      *modem.ModemShort
 		expectedErr   error
 	}{
 		{
 			name: "Success",
-			dbConfig: config.DbConfig{
-				Dbname: "test",
-				Dsn:    "",
+			dbConfig: config.HubConfig{
+				Hubname: "test",
+				Dsn:     "",
 			},
 			mockSetupFunc: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery("^SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow("5.7.32"))
@@ -344,8 +348,8 @@ func TestRepo_GetShort(t *testing.T) {
 		},
 		{
 			name: "Not found",
-			dbConfig: config.DbConfig{
-				Dbname: "test", Dsn: "",
+			dbConfig: config.HubConfig{
+				Hubname: "test", Dsn: "",
 			},
 			mockSetupFunc: func(mock sqlmock.Sqlmock) {
 				// Add expectation for the "SELECT VERSION()" query
@@ -361,20 +365,20 @@ func TestRepo_GetShort(t *testing.T) {
 						"LatDegrees", "LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest"}))
 			},
 			inputID:     modem.ID{NetModemID: 2, HubID: 0},
-			expected:    modem.ModemShort{},
+			expected:    nil,
 			expectedErr: gorm.ErrRecordNotFound,
 		},
 		{
 			name: "HubID out of range",
-			dbConfig: config.DbConfig{
-				Dbname: "test",
-				Dsn:    "",
+			dbConfig: config.HubConfig{
+				Hubname: "test",
+				Dsn:     "",
 			},
 			mockSetupFunc: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery("^SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow("5.7.32"))
 			},
 			inputID:     modem.ID{NetModemID: 1, HubID: 100}, // HubID out of range
-			expected:    modem.ModemShort{},
+			expected:    nil,
 			expectedErr: fmt.Errorf("no repository found with id %d", 100),
 		},
 	}
@@ -394,7 +398,7 @@ func TestRepo_GetShort(t *testing.T) {
 			require.NoError(t, err)
 
 			// Create a new Repo using the mocked GORM database connection
-			repo, err := NewRepoWithDb([]config.DbConfig{tc.dbConfig}, db)
+			repo, err := NewRepoWithDb([]config.HubConfig{tc.dbConfig}, db)
 			require.NoError(t, err)
 
 			// Call the GetShort method
@@ -417,7 +421,7 @@ func TestRepo_GetShort(t *testing.T) {
 
 func TestRepo_GetAll(t *testing.T) {
 	// Create the mock data
-	mockModems := []modem.Modem{
+	mockModems := []*modem.Modem{
 		{
 			ModemShort: modem.ModemShort{
 				ID: modem.ID{
@@ -475,16 +479,16 @@ func TestRepo_GetAll(t *testing.T) {
 	// Create the test cases
 	testCases := []struct {
 		name          string
-		dbConfigs     []config.DbConfig
+		dbConfigs     []config.HubConfig
 		mockSetupFunc func(sqlmock.Sqlmock)
-		expected      []modem.Modem
+		expected      []*modem.Modem
 		expectedErr   error
 	}{
 		{
 			name: "Success",
-			dbConfigs: []config.DbConfig{
-				{Dbname: "test1", Dsn: ""},
-				{Dbname: "test2", Dsn: ""},
+			dbConfigs: []config.HubConfig{
+				{Hubname: "test1", Dsn: ""},
+				{Hubname: "test2", Dsn: ""},
 			},
 			mockSetupFunc: func(mock sqlmock.Sqlmock) {
 				// Add expectation for the "SELECT VERSION()" query

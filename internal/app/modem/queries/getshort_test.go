@@ -34,7 +34,7 @@ func TestGetShortHandle(t *testing.T) {
 			},
 		}
 
-		mockRepo.On("GetShort", mockModem.ID).Return(mockModem, nil)
+		mockRepo.On("GetShort", mockModem.ID).Return(&mockModem, nil)
 		mockRepo.On("RepoName", mockModem.ID.HubID).Return("TestHub", nil)
 
 		request := GetShortRequest{ID: mockModem.ID}
@@ -64,7 +64,7 @@ func TestGetShortHandle(t *testing.T) {
 			HubID:      1,
 		}
 
-		mockRepo.On("GetShort", mockID).Return(modem.ModemShort{}, errors.New("error getting modem"))
+		mockRepo.On("GetShort", mockID).Return((*modem.ModemShort)(nil), errors.New("error getting modem"))
 
 		request := GetShortRequest{ID: mockID}
 		_, err := handler.Handle(request)
@@ -97,7 +97,7 @@ func TestGetShortHandle(t *testing.T) {
 			},
 		}
 
-		mockRepo.On("GetShort", mockModem.ID).Return(mockModem, nil)
+		mockRepo.On("GetShort", mockModem.ID).Return(&mockModem, nil)
 		mockRepo.On("RepoName", mockModem.ID.HubID).Return("", errors.New("error getting hub name"))
 
 		request := GetShortRequest{ID: mockModem.ID}

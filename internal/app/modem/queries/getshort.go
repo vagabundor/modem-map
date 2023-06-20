@@ -47,7 +47,7 @@ func (h getShortRequestHandler) Handle(query GetShortRequest) (GetShortResult, e
 	}
 
 	var result GetShortResult
-	if (m != modem.ModemShort{}) {
+	if m != nil {
 		geo := geo.ToDecimal(geo.DMS{Degrees: m.LatDegrees, Minutes: m.LatMinutes, Seconds: m.LatSeconds, Direction: m.LatSouth},
 			geo.DMS{Degrees: m.LongDegrees, Minutes: m.LongMinutes, Seconds: m.LongSeconds, Direction: m.LongWest})
 
@@ -62,5 +62,5 @@ func (h getShortRequestHandler) Handle(query GetShortRequest) (GetShortResult, e
 		}
 	}
 
-	return result, err
+	return result, nil
 }
