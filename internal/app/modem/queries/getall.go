@@ -20,7 +20,7 @@ type GetAllResult struct {
 	Lnb           string
 	Upsnr         string
 	Downsnr       string
-	Temperature   string
+	Temp          string
 }
 
 // GetAllRequestHandler provides an interface to handle a GetAllRequest and return a GetAllResult
@@ -69,5 +69,5 @@ func (h getAllRequestHandler) Handle() ([]GetAllResult, error) {
 		})
 
 	}
-	return result, err
+	return result, nil
 }
