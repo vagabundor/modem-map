@@ -7,7 +7,7 @@ type MockConfigService struct {
 	mock.Mock
 }
 
-func (m MockConfigService) Read() (Config, error) {
+func (m *MockConfigService) Read() (Config, error) {
 	args := m.Called()
 	return Config{}, args.Error(0)
 }
