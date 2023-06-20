@@ -26,7 +26,7 @@ func main() {
 
 	cfg := interfaceAdaptersServices.ConfigService.GetConfig()
 
-	appServices := app.NewServices(interfaceAdaptersServices.ModemRepository)
+	appServices := app.NewServices(interfaceAdaptersServices.ModemRepository, interfaceAdaptersServices.ModemMetrics)
 	inputPortServices := inputports.NewServices(appServices, cfg.Http.TemplatesDir, cfg.Http.ListenAddr)
 	inputPortServices.Server.ListenAndServe()
 }
