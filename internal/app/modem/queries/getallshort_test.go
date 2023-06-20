@@ -8,12 +8,14 @@ import (
 	"modem-map/internal/pkg/geo"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestGetAllShortRequestHandler(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(modem.MockModemRepository)
-		handler := NewGetAllShortRequestHandler(mockRepo)
+		mockMetrics := new(modem.MockMetrics)
+		handler := NewGetAllShortRequestHandler(mockRepo, mockMetrics)
 
 		mockModems := []modem.ModemShort{
 			{
@@ -37,6 +39,8 @@ func TestGetAllShortRequestHandler(t *testing.T) {
 				},
 			},
 		}
+
+		mockMetrics.On("UpdateOnlineStatus", mock.Anything).Return(nil)
 
 		mockRepo.On("GetAllShort").Return(mockModems, nil)
 		mockRepo.On("RepoName", mockModems[0].HubID).Return("hub1", nil)
@@ -63,7 +67,8 @@ func TestGetAllShortRequestHandler(t *testing.T) {
 
 	t.Run("error getting modems", func(t *testing.T) {
 		mockRepo := new(modem.MockModemRepository)
-		handler := NewGetAllShortRequestHandler(mockRepo)
+		mockMetrics := new(modem.MockMetrics)
+		handler := NewGetAllShortRequestHandler(mockRepo, mockMetrics)
 
 		mockRepo.On("GetAllShort").Return([]modem.ModemShort{}, errors.New("error getting modems"))
 
@@ -75,7 +80,8 @@ func TestGetAllShortRequestHandler(t *testing.T) {
 
 	t.Run("error getting hub name", func(t *testing.T) {
 		mockRepo := new(modem.MockModemRepository)
-		handler := NewGetAllShortRequestHandler(mockRepo)
+		mockMetrics := new(modem.MockMetrics)
+		handler := NewGetAllShortRequestHandler(mockRepo, mockMetrics)
 
 		mockModems := []modem.ModemShort{
 			{
@@ -101,6 +107,7 @@ func TestGetAllShortRequestHandler(t *testing.T) {
 		}
 		mockRepo.On("GetAllShort").Return(mockModems, nil)
 		mockRepo.On("RepoName", mockModems[0].HubID).Return("", errors.New("error getting hub name"))
+		mockMetrics.On("UpdateOnlineStatus", mock.Anything).Return(nil)
 
 		_, err := handler.Handle()
 

@@ -13,6 +13,7 @@ type GetResult struct {
 	ModemSn       int
 	NetModemName  string
 	ActiveStatus  int16
+	OnlineStatus  int
 	GeoLocation   geo.DD
 	Model         int16
 	ReflectorSize float64
@@ -20,7 +21,7 @@ type GetResult struct {
 	Lnb           string
 	Upsnr         string
 	Downsnr       string
-	Temperature   string
+	Temp          string
 }
 
 // GetRequest Model of the Handler
@@ -34,11 +35,12 @@ type GetRequestHandler interface {
 }
 
 type getRequestHandler struct {
-	repo modem.Repository
+	repo    modem.Repository
+	metrics modem.Metrics
 }
 
-func NewGetRequestHandler(repo modem.Repository) GetRequestHandler {
-	return getRequestHandler{repo: repo}
+func NewGetRequestHandler(repo modem.Repository, metrics modem.Metrics) GetRequestHandler {
+	return getRequestHandler{repo: repo, metrics: metrics}
 }
 
 // Handle Handlers the GetRequest query
@@ -54,9 +56,15 @@ func (h getRequestHandler) Handle(query GetRequest) (GetResult, error) {
 	}
 
 	var result GetResult
-	if (m != modem.Modem{}) {
+	if m != nil {
 		geo := geo.ToDecimal(geo.DMS{Degrees: m.LatDegrees, Minutes: m.LatMinutes, Seconds: m.LatSeconds, Direction: m.LatSouth},
 			geo.DMS{Degrees: m.LongDegrees, Minutes: m.LongMinutes, Seconds: m.LongSeconds, Direction: m.LongWest})
+
+		// Get metrics data for modem
+		err := h.metrics.UpdateMetrics(m)
+		if err != nil {
+			return GetResult{}, err
+		}
 
 		result = GetResult{
 			ID:            m.NetModemID,
@@ -65,13 +73,17 @@ func (h getRequestHandler) Handle(query GetRequest) (GetResult, error) {
 			ModemSn:       m.ModemSn,
 			NetModemName:  m.NetModemName,
 			ActiveStatus:  m.ActiveStatus,
+			OnlineStatus:  m.OnlineStatus,
 			GeoLocation:   geo,
 			Model:         m.Model,
 			ReflectorSize: m.ReflectorSize,
 			Buc:           m.Buc,
 			Lnb:           m.Lnb,
+			Upsnr:         m.Upsnr,
+			Downsnr:       m.Downsnr,
+			Temp:          m.Temp,
 		}
 	}
 
-	return result, err
+	return result, nil
 }

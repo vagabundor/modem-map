@@ -14,6 +14,7 @@ type GetAllShortResult struct {
 	ModemSn      int
 	NetModemName string
 	ActiveStatus int16
+	OnlineStatus int
 	GeoLocation  geo.DD
 }
 
@@ -23,11 +24,12 @@ type GetAllShortRequestHandler interface {
 }
 
 type getAllShortRequestHandler struct {
-	repo modem.Repository
+	repo    modem.Repository
+	metrics modem.Metrics
 }
 
-func NewGetAllShortRequestHandler(repo modem.Repository) GetAllShortRequestHandler {
-	return getAllShortRequestHandler{repo: repo}
+func NewGetAllShortRequestHandler(repo modem.Repository, metrics modem.Metrics) GetAllShortRequestHandler {
+	return getAllShortRequestHandler{repo: repo, metrics: metrics}
 }
 
 // Handle Handlers the GetAllShortRequest query
@@ -37,10 +39,17 @@ func (h getAllShortRequestHandler) Handle() ([]GetAllShortResult, error) {
 		return nil, err
 	}
 
-	var result []GetAllShortResult
 	if ms == nil {
 		return nil, errors.New("modem query: GetAllShortRequest result is nil")
 	}
+
+	// Get metrics data for modem
+	err = h.metrics.UpdateOnlineStatus(ms)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []GetAllShortResult
 	for _, m := range ms {
 
 		hubname, err := h.repo.RepoName(m.HubID)
@@ -58,9 +67,10 @@ func (h getAllShortRequestHandler) Handle() ([]GetAllShortResult, error) {
 			HubName:      hubname,
 			NetModemName: m.NetModemName,
 			ActiveStatus: m.ActiveStatus,
+			OnlineStatus: m.OnlineStatus,
 			GeoLocation:  geo,
 		})
 
 	}
-	return result, err
+	return result, nil
 }

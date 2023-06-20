@@ -24,14 +24,14 @@ type Services struct {
 }
 
 // NewServices Bootstraps Application Layer dependencies
-func NewServices(modemRepo modem.Repository) Services {
+func NewServices(modemRepo modem.Repository, modemMetrics modem.Metrics) Services {
 	return Services{
 		ModemServices: ModemServices{
 			Queries: Queries{
-				queries.NewGetRequestHandler(modemRepo),
+				queries.NewGetRequestHandler(modemRepo, modemMetrics),
 				queries.NewGetShortRequestHandler(modemRepo),
 				queries.NewGetAllRequestHandler(modemRepo),
-				queries.NewGetAllShortRequestHandler(modemRepo),
+				queries.NewGetAllShortRequestHandler(modemRepo, modemMetrics),
 			},
 		},
 	}

@@ -7,12 +7,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestGetHandle(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(modem.MockModemRepository)
-		handler := NewGetRequestHandler(mockRepo)
+		mockMetrics := new(modem.MockMetrics)
+		handler := NewGetRequestHandler(mockRepo, mockMetrics)
 
 		mockModem := modem.Modem{
 			ModemShort: modem.ModemShort{
@@ -38,7 +40,9 @@ func TestGetHandle(t *testing.T) {
 			ReflectorSize: 2.5,
 		}
 
-		mockRepo.On("Get", mockModem.ID).Return(mockModem, nil)
+		mockMetrics.On("UpdateMetrics", mock.Anything).Return(nil)
+
+		mockRepo.On("Get", mockModem.ID).Return(&mockModem, nil)
 		mockRepo.On("RepoName", mockModem.ID.HubID).Return("TestHub", nil)
 
 		request := GetRequest{ID: mockModem.ID}
@@ -59,29 +63,33 @@ func TestGetHandle(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
 		mockRepo.AssertExpectations(t)
+		mockMetrics.AssertExpectations(t)
 	})
 
 	t.Run("error getting modem", func(t *testing.T) {
 		mockRepo := new(modem.MockModemRepository)
-		handler := NewGetRequestHandler(mockRepo)
+		mockMetrics := new(modem.MockMetrics)
+		handler := NewGetRequestHandler(mockRepo, mockMetrics)
 
 		mockID := modem.ID{
 			NetModemID: 2,
 			HubID:      1,
 		}
 
-		mockRepo.On("Get", mockID).Return(modem.Modem{}, errors.New("error getting modem"))
+		mockRepo.On("Get", mockID).Return((*modem.Modem)(nil), errors.New("error getting modem"))
 
 		request := GetRequest{ID: mockID}
 		_, err := handler.Handle(request)
 
 		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
+		mockMetrics.AssertExpectations(t)
 	})
 
 	t.Run("error getting hub name", func(t *testing.T) {
 		mockRepo := new(modem.MockModemRepository)
-		handler := NewGetRequestHandler(mockRepo)
+		mockMetrics := new(modem.MockMetrics)
+		handler := NewGetRequestHandler(mockRepo, mockMetrics)
 
 		mockModem := modem.Modem{
 			ModemShort: modem.ModemShort{
@@ -107,7 +115,7 @@ func TestGetHandle(t *testing.T) {
 			ReflectorSize: 2.5,
 		}
 
-		mockRepo.On("Get", mockModem.ID).Return(mockModem, nil)
+		mockRepo.On("Get", mockModem.ID).Return(&mockModem, nil)
 		mockRepo.On("RepoName", mockModem.ID.HubID).Return("", errors.New("error getting hub name"))
 
 		request := GetRequest{ID: mockModem.ID}
@@ -115,6 +123,7 @@ func TestGetHandle(t *testing.T) {
 
 		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
+		mockMetrics.AssertExpectations(t)
 	})
 
 }

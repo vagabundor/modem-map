@@ -10,8 +10,9 @@ import (
 
 func TestNewServices(t *testing.T) {
 	mockModemRepo := &modem.MockModemRepository{}
+	mockModemMetrics := &modem.MockMetrics{}
 
-	services := NewServices(mockModemRepo)
+	services := NewServices(mockModemRepo, mockModemMetrics)
 
 	assert.NotNil(t, services.ModemServices.Queries.Get, "Expected Get query to be initialized, got nil")
 	assert.NotNil(t, services.ModemServices.Queries.GetShort, "Expected GetShort query to be initialized, got nil")
