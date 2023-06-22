@@ -1,7 +1,6 @@
 package interfaceadapters
 
 import (
-	"fmt"
 	"modem-map/internal/app/config"
 	"modem-map/internal/domain/modem"
 	"modem-map/internal/interfaceadapters/config/file"
@@ -29,7 +28,6 @@ func NewServices(configPath string) (Services, error) {
 	}
 
 	snmps, err := snmp.InitSNMP(configService.Config.Hubs)
-	fmt.Println(configService.Config.Hubs)
 	if err != nil {
 		return Services{}, err
 	}
