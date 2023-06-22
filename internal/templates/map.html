@@ -87,8 +87,8 @@
 
           // Check if coordinates are not zero
           if (object.GeoLocation.Lat !== 0 && object.GeoLocation.Long !== 0) {
-            //Check	if modem is not deactivated
-            if (object.ActiveStatus !== 0) {
+            // Check	if modem is not Incomplete/NeveApplied/Deactivated
+            if (object.Status == "Nominal" && object.ActiveStatus !== 0) {
               var marker = L.marker([
                 object.GeoLocation.Lat,
                 object.GeoLocation.Long,
@@ -114,24 +114,6 @@
           method: "GET",
           dataType: "json",
           success: function (data) {
-            var onlineStatus = "";
-
-            switch (data.OnlineStatus) {
-              case 0:
-                onlineStatus = "OK";
-                break;
-              case 1:
-                onlineStatus = "Warning";
-                break;
-              case 2:
-                onlineStatus = "Never Applied";
-                break;
-              case 3:
-                onlineStatus = "Alarm";
-                break;
-              default:
-                onlineStatus = "Unknown";
-            }
 
             var model = "";
 
@@ -166,7 +148,7 @@
               "<br>Hub: " +
               data.HubName +
               "<br>Status: " +
-              onlineStatus +
+              data.Status +
               "<br>Modem s/n: " +
               data.ModemSn +
               "<br>Model: " +

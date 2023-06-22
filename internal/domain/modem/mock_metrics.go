@@ -22,8 +22,8 @@ func (_m *MockMetrics) UpdateMetrics(modem *Modem) error {
 	return r0
 }
 
-// UpdateOnlineStatus provides a mock function with given fields: modems
-func (_m *MockMetrics) UpdateOnlineStatus(modems []*ModemShort) error {
+// UpdateStatus provides a mock function with given fields: modems
+func (_m *MockMetrics) UpdateStatus(modems []*ModemShort) error {
 	ret := _m.Called(modems)
 
 	var r0 error

@@ -14,7 +14,7 @@ type GetAllShortResult struct {
 	ModemSn      int
 	NetModemName string
 	ActiveStatus int16
-	OnlineStatus int
+	Status       string
 	GeoLocation  geo.DD
 }
 
@@ -44,7 +44,7 @@ func (h getAllShortRequestHandler) Handle() ([]GetAllShortResult, error) {
 	}
 
 	// Get metrics data for modem
-	err = h.metrics.UpdateOnlineStatus(ms)
+	err = h.metrics.UpdateStatus(ms)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (h getAllShortRequestHandler) Handle() ([]GetAllShortResult, error) {
 			HubName:      hubname,
 			NetModemName: m.NetModemName,
 			ActiveStatus: m.ActiveStatus,
-			OnlineStatus: m.OnlineStatus,
+			Status:       m.Status,
 			GeoLocation:  geo,
 		})
 

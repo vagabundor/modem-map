@@ -40,7 +40,7 @@ func TestGetAllShortRequestHandler(t *testing.T) {
 			},
 		}
 
-		mockMetrics.On("UpdateOnlineStatus", mock.Anything).Return(nil)
+		mockMetrics.On("UpdateStatus", mock.Anything).Return(nil)
 
 		mockRepo.On("GetAllShort").Return(mockModems, nil)
 		mockRepo.On("RepoName", mockModems[0].HubID).Return("hub1", nil)
@@ -107,7 +107,7 @@ func TestGetAllShortRequestHandler(t *testing.T) {
 		}
 		mockRepo.On("GetAllShort").Return(mockModems, nil)
 		mockRepo.On("RepoName", mockModems[0].HubID).Return("", errors.New("error getting hub name"))
-		mockMetrics.On("UpdateOnlineStatus", mock.Anything).Return(nil)
+		mockMetrics.On("UpdateStatus", mock.Anything).Return(nil)
 
 		_, err := handler.Handle()
 

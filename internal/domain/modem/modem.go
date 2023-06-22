@@ -24,7 +24,7 @@ type ModemShort struct {
 	ModemSn      int    `gorm:"column:ModemSn;type:int(11)"`
 	NetModemName string `gorm:"column:NetModemName;type:varchar(64)"`
 	ActiveStatus int16  `gorm:"column:ActiveStatus;type:smallint(6)"`
-	OnlineStatus int
+	Status       string
 	Geo
 }
 

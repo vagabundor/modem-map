@@ -60,7 +60,7 @@ func NewMetrics(snmps []*gosnmp.GoSNMP) Metrics {
 			"Upsnr":   ".1.3.6.1.4.1.13732.1.4.4.1.2.",
 			"Downsnr": ".1.3.6.1.4.1.13732.1.4.3.1.2.",
 			"Temp":    ".1.3.6.1.4.1.13732.1.4.3.1.8.",
-			"Status":  ".1.3.6.1.4.1.13732.1.1.1.1.12.",
+			"Status":  ".1.3.6.1.4.1.13732.1.1.1.1.15.",
 		},
 	}
 	return metrics
@@ -98,8 +98,8 @@ func (m Metrics) UpdateMetrics(modem *modem.Modem) error {
 			}
 		case m.oids["Status"] + strDID:
 			if variable.Value != nil {
-				if val, ok := variable.Value.(int); ok {
-					modem.OnlineStatus = val
+				if val, ok := variable.Value.([]uint8); ok {
+					modem.Status = string(val)
 				}
 			}
 		}
@@ -107,7 +107,7 @@ func (m Metrics) UpdateMetrics(modem *modem.Modem) error {
 	return nil
 }
 
-func (m Metrics) UpdateOnlineStatus(modems []*modem.ModemShort) error {
+func (m Metrics) UpdateStatus(modems []*modem.ModemShort) error {
 	for _, modem := range modems {
 		i := modem.HubID
 		resp, err := m.snmps[i].Get([]string{m.oids["Status"] + strconv.Itoa(modem.DID)})
@@ -121,8 +121,8 @@ func (m Metrics) UpdateOnlineStatus(modems []*modem.ModemShort) error {
 			switch variable.Name {
 			case m.oids["Status"] + strDID:
 				if variable.Value != nil {
-					if val, ok := variable.Value.(int); ok {
-						modem.OnlineStatus = val
+					if val, ok := variable.Value.([]uint8); ok {
+						modem.Status = string(val)
 					}
 				}
 			}

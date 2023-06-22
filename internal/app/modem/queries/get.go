@@ -13,7 +13,7 @@ type GetResult struct {
 	ModemSn       int
 	NetModemName  string
 	ActiveStatus  int16
-	OnlineStatus  int
+	Status        string
 	GeoLocation   geo.DD
 	Model         int16
 	ReflectorSize float64
@@ -73,7 +73,7 @@ func (h getRequestHandler) Handle(query GetRequest) (GetResult, error) {
 			ModemSn:       m.ModemSn,
 			NetModemName:  m.NetModemName,
 			ActiveStatus:  m.ActiveStatus,
-			OnlineStatus:  m.OnlineStatus,
+			Status:        m.Status,
 			GeoLocation:   geo,
 			Model:         m.Model,
 			ReflectorSize: m.ReflectorSize,
