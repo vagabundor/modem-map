@@ -48,9 +48,12 @@ func (sq Repo) GetAllShort() ([]*modem.ModemShort, error) {
 		result := db.Table("NetModem AS nm").
 			Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, "+
 				"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
-				"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest").
+				"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest, "+
+				"vno.Name").
 			Joins("LEFT JOIN Location AS loc ON nm.LocationID = loc.LocationID").
 			Joins("LEFT JOIN GeoLocation AS gl ON loc.GeoLocationID = gl.GeoLocationID").
+			Joins("LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.DID = vnoRes.ResourceId").
+			Joins("LEFT JOIN VNOGroup vno ON vnoRes.GroupId = vno.ID").
 			Where("nm.NetModemTypeId = ?", 3).
 			Find(&modems)
 
