@@ -15,6 +15,7 @@ type GetAllShortResult struct {
 	NetModemName string
 	ActiveStatus int16
 	Status       string
+	VnoName      string
 	GeoLocation  geo.DD
 }
 
@@ -68,6 +69,7 @@ func (h getAllShortRequestHandler) Handle() ([]GetAllShortResult, error) {
 			NetModemName: m.NetModemName,
 			ActiveStatus: m.ActiveStatus,
 			Status:       m.Status,
+			VnoName:      m.VnoName,
 			GeoLocation:  geo,
 		})
 

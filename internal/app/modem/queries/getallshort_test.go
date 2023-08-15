@@ -27,6 +27,7 @@ func TestGetAllShortRequestHandler(t *testing.T) {
 				ModemSn:      123,
 				NetModemName: "test",
 				ActiveStatus: 1,
+				VnoName:      "VNO_Group1",
 				Geo: modem.Geo{
 					LatDegrees:  40,
 					LatMinutes:  26,
@@ -55,6 +56,7 @@ func TestGetAllShortRequestHandler(t *testing.T) {
 				HubName:      "hub1",
 				NetModemName: mockModems[0].NetModemName,
 				ActiveStatus: mockModems[0].ActiveStatus,
+				VnoName:      mockModems[0].VnoName,
 				GeoLocation: geo.ToDecimal(geo.DMS{Degrees: mockModems[0].LatDegrees, Minutes: mockModems[0].LatMinutes, Seconds: mockModems[0].LatSeconds, Direction: mockModems[0].LatSouth},
 					geo.DMS{Degrees: mockModems[0].LongDegrees, Minutes: mockModems[0].LongMinutes, Seconds: mockModems[0].LongSeconds, Direction: mockModems[0].LongWest}),
 			},
