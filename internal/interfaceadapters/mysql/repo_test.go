@@ -101,7 +101,7 @@ func TestRepo_GetAllShort(t *testing.T) {
 					"FROM NetModem AS nm " +
 					"LEFT JOIN Location AS loc ON nm.LocationID = loc.LocationID " +
 					"LEFT JOIN GeoLocation AS gl ON loc.GeoLocationID = gl.GeoLocationID " +
-					"LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.DID = vnoRes.ResourceId " +
+					"LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.NetModemId = vnoRes.ResourceId " +
 					"LEFT JOIN VNOGroup vno ON vnoRes.GroupId = vno.ID").
 					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "DID", "ModemSn", "NetModemName", "ActiveStatus", "LatDegrees", "LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "Name"}).
 						AddRow(mockModems[0].ID.NetModemID, mockModems[0].ID.DID, mockModems[0].ModemSn, mockModems[0].NetModemName, mockModems[0].ActiveStatus,
@@ -116,7 +116,7 @@ func TestRepo_GetAllShort(t *testing.T) {
 					"FROM NetModem AS nm " +
 					"LEFT JOIN Location AS loc ON nm.LocationID = loc.LocationID " +
 					"LEFT JOIN GeoLocation AS gl ON loc.GeoLocationID = gl.GeoLocationID " +
-					"LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.DID = vnoRes.ResourceId " +
+					"LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.NetModemId = vnoRes.ResourceId " +
 					"LEFT JOIN VNOGroup vno ON vnoRes.GroupId = vno.ID").
 					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "DID", "ModemSn", "NetModemName", "ActiveStatus", "LatDegrees", "LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "Name"}).
 						AddRow(mockModems[1].ID.NetModemID, mockModems[1].ID.DID, mockModems[1].ModemSn, mockModems[1].NetModemName, mockModems[1].ActiveStatus,
