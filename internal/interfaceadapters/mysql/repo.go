@@ -52,7 +52,7 @@ func (sq Repo) GetAllShort() ([]*modem.ModemShort, error) {
 				"vno.Name").
 			Joins("LEFT JOIN Location AS loc ON nm.LocationID = loc.LocationID").
 			Joins("LEFT JOIN GeoLocation AS gl ON loc.GeoLocationID = gl.GeoLocationID").
-			Joins("LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.DID = vnoRes.ResourceId").
+			Joins("LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.NetModemId = vnoRes.ResourceId").
 			Joins("LEFT JOIN VNOGroup vno ON vnoRes.GroupId = vno.ID").
 			Where("nm.NetModemTypeId = ?", 3).
 			Find(&modems)
