@@ -1,28 +1,16 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta
-      name="generator"
-      content="HTML Tidy for HTML5 for Linux version 5.7.45"
-    />
-    <meta
-      name="viewport"
-      content="initial-scale=1,maximum-scale=1,user-scalable=no"
-    />
-    <title>Modems Map</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.css"
-    />
-    <link
-      href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
-      rel="stylesheet"
-    />
-    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.17/leaflet-maplibre-gl.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
+<head>
+  <meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.7.45">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Modems Map</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.css">
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.17/leaflet-maplibre-gl.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
       #map {
         position: absolute;
         top: 0;
@@ -30,31 +18,52 @@
         bottom: 0;
         left: 0;
       }
-    </style>
-  </head>
-  <body>
-    <div id="map">
-      <a
-        href="https://www.maptiler.com"
-        style="position: absolute; left: 10px; bottom: 10px; z-index: 999"
-        ><img
-          src="https://api.maptiler.com/resources/logo.svg"
-          alt="MapTiler logo"
-      /></a>
-    </div>
-    <p>
-      <a href="https://www.maptiler.com/copyright/" target="_blank"
-        >© MapTiler</a
-      >
-      <a href="https://www.openstreetmap.org/copyright" target="_blank"
-        >© OpenStreetMap contributors</a
-      >
-    </p>
-    <script>
+      
+      #filter {
+      position: absolute;
+      top: 120px;
+      left: 10px;
+      z-index: 1000;
+      background-color: white;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+      font-family: 'Arial', sans-serif;
+    }
+
+    #filter h3 {
+  font-weight: bold;
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 5px;
+  }
+
+  #filter label {
+  display: block;
+  margin: 1px 0;
+  }
+
+  #filter input[type="checkbox"] {
+  margin-right: 5px;
+  }
+  </style>
+</head>
+<body>
+  <div id="filter">
+    <h3>VNO Group Filter</h3><label><input type="checkbox" id="allCheckbox" checked>All</label>
+    <div id="dynamicCheckboxes"></div><label><input type="checkbox" id="otherCheckbox">Other</label>
+  </div>
+  <div id="map">
+    <a href="https://www.maptiler.com" style="position: absolute; left: 10px; bottom: 10px; z-index: 999"><img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
+  </div>
+  <p><a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a></p>
+  <script>
+      var markers = {};
       const key = "1x8jLSMUSvmzFnHqiOSb";
       const map = L.map("map", { attributionControl: false }).setView(
-        [0, 0],
-        1
+        [56.8386, 60.6055],
+        3
       );
       const gl = L.maplibreGL({
         attribution:
@@ -72,40 +81,132 @@
           dataType: "json",
           success: function (data) {
             console.log(data);
-            displayObjects(data);
-          },
-          error: function (err) {
-            console.error("Error while get modems from server", err);
-          },
-        });
+            displayVnoNames(data);
+                              displayObjects(data);
+            loadFilterSettings();
+        },
+      error: function (err) {
+        console.error("Error while getting modems from server", err);
+      },
+    });
+  }
+
+      // Function to display the VNO names as checkboxes
+      function displayVnoNames(objects) {
+        var vnoNames = new Set();
+  objects.forEach((object) => {
+    if (object.VnoName) {
+      vnoNames.add(object.VnoName);
+    }
+  });
+
+  vnoNames.forEach((name) => {
+    $('#dynamicCheckboxes').append(`<label><input type="checkbox" class="vnoCheckbox" value="${name}">${name}</label>`);
+  });
+
+  // Event handler to update visible markers whenever any checkbox changes
+  $('#filter').on('change', 'input[type=checkbox]', function() {
+  updateVisibleMarkers();
+  saveFilterSettings();
+  });
+  }
+
+  function displayObjects(objects) {
+  // Remove old markers
+  Object.values(markers).flat().forEach(marker => marker.remove());
+  markers = {}; // Reset markers object
+
+  // Create and add markers to the map
+  for (var i = 0; i < objects.length; i++) {
+    var object = objects[i];
+
+    // Check if coordinates are not zero
+    if (object.GeoLocation.Lat !== 0 && object.GeoLocation.Long !== 0) {
+      // Check  if modem is not Incomplete/NeveApplied/Deactivated
+      if (object.Status == "Nominal" && object.ActiveStatus !== 0) {
+        var marker = L.marker([
+          object.GeoLocation.Lat,
+          object.GeoLocation.Long,
+        ]);
+
+        marker.on(
+          "click",
+          (function (marker, object) {
+            return function () {
+              fetchDetailedInfo(marker, object);
+            };
+          })(marker, object)
+        );
+
+        var vnoName = object.VnoName || 'Other';
+        markers[vnoName] = markers[vnoName] || [];
+        markers[vnoName].push(marker);
       }
+    }
+  }
 
-      function displayObjects(objects) {
-        // Create and add markers to the map
-        for (var i = 0; i < objects.length; i++) {
-          var object = objects[i];
+  updateVisibleMarkers(); // Call this function outside the loop
+  }
 
-          // Check if coordinates are not zero
-          if (object.GeoLocation.Lat !== 0 && object.GeoLocation.Long !== 0) {
-            // Check	if modem is not Incomplete/NeveApplied/Deactivated
-            if (object.Status == "Nominal" && object.ActiveStatus !== 0) {
-              var marker = L.marker([
-                object.GeoLocation.Lat,
-                object.GeoLocation.Long,
-              ]).addTo(map);
+  function updateVisibleMarkers() {
+  // Remove all markers
+  Object.values(markers).flat().forEach(marker => marker.remove());
 
-              marker.on(
-                "click",
-                (function (marker, object) {
-                  return function () {
-                    fetchDetailedInfo(marker, object);
-                  };
-                })(marker, object)
-              );
-            }
-          }
-        }
-      }
+  // Add markers by checkbox selections
+  if ($('#allCheckbox').prop("checked")) {
+    Object.values(markers).flat().forEach(marker => marker.addTo(map));
+  } else {
+    $('.vnoCheckbox:checked').each(function() {
+      markers[$(this).val()]?.forEach(marker => marker.addTo(map));
+    });
+
+    if ($('#otherCheckbox').prop("checked")) {
+      markers['Other']?.forEach(marker => marker.addTo(map));
+    }
+  }
+  }
+
+  function saveFilterSettings() {
+  var settings = {
+    allCheckbox: $("#allCheckbox").prop("checked"),
+    otherCheckbox: $("#otherCheckbox").prop("checked"),
+    vnoCheckboxes: $(".vnoCheckbox").map(function () {
+      return { value: $(this).val(), checked: $(this).prop("checked") };
+    }).get()
+  };
+  localStorage.setItem("filterSettings", JSON.stringify(settings));
+  }
+
+  function loadFilterSettings() {
+  var settings = JSON.parse(localStorage.getItem("filterSettings"));
+  if (settings) {
+    $('#filter input[type=checkbox]').off('change');
+
+    $("#allCheckbox").prop("checked", settings.allCheckbox);
+    $("#otherCheckbox").prop("checked", settings.otherCheckbox);
+    settings.vnoCheckboxes.forEach(function (vno) {
+      $('.vnoCheckbox[value="' + vno.value + '"]').prop("checked", vno.checked);
+    });
+
+    // Обрабатываем состояние "All" и блокируем другие чекбоксы
+    if (settings.allCheckbox) {
+      $(".vnoCheckbox, #otherCheckbox").prop("checked", true).prop("disabled", true);
+    }
+
+    $('#filter').on('change', 'input[type=checkbox]', function() {
+      updateVisibleMarkers();
+      // saveFilterSettings(); // Если нужно, раскомментируйте эту строку
+    });
+
+    if (settings.allCheckbox) {
+      $("#filter input[type=checkbox]").not("#allCheckbox").prop("disabled", true);
+    } else {
+      $("#filter input[type=checkbox]").not("#allCheckbox").prop("disabled", false);
+    }
+
+    updateVisibleMarkers();
+  }
+  }
 
       // Fetch detailed information about the object and display it in the popup
       function fetchDetailedInfo(marker, object) {
@@ -174,8 +275,17 @@
 
       // Initialization on page loading
       $(document).ready(function () {
+        // Event handler for the "All" checkbox
+  $("#allCheckbox").click(function () {
+  if ($(this).prop("checked")) {
+    $(".vnoCheckbox, #otherCheckbox").prop("checked", true).prop("disabled", true);
+  } else {
+    $(".vnoCheckbox, #otherCheckbox").prop("checked", false).prop("disabled", false);
+  }
+  });
         fetchObjects();
+        loadFilterSettings();
       });
-    </script>
-  </body>
+  </script>
+</body>
 </html>
