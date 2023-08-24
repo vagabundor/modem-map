@@ -26,6 +26,7 @@ steps:
     - echo "$STAGING_SSH_KEY" | ssh-add -
     - rsync -avz --delete --progress -e "ssh -p 22 -o StrictHostKeyChecking=no" ./modem-map $STAGING_USER@$STAGING_HOST:/opt/modem-map/
     - rsync -avz --progress -e "ssh -p 22 -o StrictHostKeyChecking=no" ./internal/templates/ $STAGING_USER@$STAGING_HOST:/opt/modem-map/templates/
+    - rsync -avz --progress -e "ssh -p 22 -o StrictHostKeyChecking=no" ./internal/static/ $STAGING_USER@$STAGING_HOST:/opt/modem-map/static/
   environment:
     STAGING_USER:
       from_secret: staging_user
