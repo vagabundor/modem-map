@@ -24,6 +24,7 @@ func NewServer(appServices app.Services, templatesDir, listenAddr string) *Serve
 	httpServer.router = mux.NewRouter()
 	httpServer.AddModemHTTPRoutes()
 	httpServer.AddGeomapHttpRoutes()
+	httpServer.AddStaticRoutes()
 	http.Handle("/", httpServer.router)
 
 	return httpServer
