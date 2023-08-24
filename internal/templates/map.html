@@ -10,6 +10,8 @@
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.17/leaflet-maplibre-gl.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://api-maps.yandex.ru/2.1/?apikey=4c4b789f-f24e-4b22-b52d-c2dea283f2ab&lang=ru_RU" type="text/javascript"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
       #map {
         position: absolute;
@@ -21,8 +23,8 @@
       
       #filter {
       position: absolute;
-      top: 120px;
-      left: 10px;
+      top: 80px;
+      right: 10px;
       z-index: 1000;
       background-color: white;
       padding: 15px;
@@ -32,9 +34,8 @@
       font-family: 'Arial', sans-serif;
     }
 
-    #filter h3 {
+  #filter h3 {
   font-weight: bold;
-  font-size: 16px;
   margin-top: 0;
   margin-bottom: 5px;
   }
@@ -47,12 +48,72 @@
   #filter input[type="checkbox"] {
   margin-right: 5px;
   }
+
+  #searchContainer {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    top: 10px;
+    width: 80%;
+    max-width: 700px;
+    min-width: 300px;
+  }
+
+  #search {
+    flex-grow: 1;
+    padding: 5px 10px 5px 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    padding-right: 80px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  }
+
+  #clearInput, #startSearch {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    }
+
+  #clearInput {
+    right: 30px;
+    display: none;
+  }
+
+  #startSearch {
+    right: 5px;
+  }
+
+  #filter, #search, #clearInput, #startSearch {
+    font-size: 16px;
+    font-family: 'Arial', sans-serif;
+  }
+
+  .leaflet-popup-content {
+    font-size: 16px;
+    font-family: 'Arial', sans-serif;
+  }
+
+  .leaflet-popup {
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+
   </style>
 </head>
 <body>
   <div id="filter">
     <h3>VNO Group Filter</h3><label><input type="checkbox" id="allCheckbox" checked>All</label>
     <div id="dynamicCheckboxes"></div><label><input type="checkbox" id="otherCheckbox">Other</label>
+  </div>
+  <div id="searchContainer">
+    <input type="text" id="search" placeholder="Search here..."> <button id="clearInput" class="search-btn" title="Clear"><i class="fas fa-times"></i></button> <button id="startSearch" class="search-btn" title="Search"><i class="fas fa-search"></i></button>
   </div>
   <div id="map">
     <a href="https://www.maptiler.com" style="position: absolute; left: 10px; bottom: 10px; z-index: 999"><img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
@@ -72,6 +133,35 @@
           "https://api.maptiler.com/maps/a70663c9-dbef-4ba6-838b-355b5016f9b8/style.json?key=" +
           key,
       }).addTo(map);
+
+      map.on('popupopen', function(e) {
+    var popup = e.popup;
+
+    var PADDING = 10;
+
+    var searchRect = document.getElementById('searchContainer').getBoundingClientRect();
+    var popupRect = popup._wrapper.getBoundingClientRect();
+    var xOffset = 0;
+    var yOffset = 0;
+
+        if (popupRect.top < searchRect.bottom) {
+        yOffset = searchRect.bottom - popupRect.top + PADDING;
+    }
+
+        if (popupRect.left < 0) {
+        xOffset = -popupRect.left + PADDING;
+    }
+
+        var rightOverflow = popupRect.right - window.innerWidth;
+    if (rightOverflow > 0) {
+        xOffset = -rightOverflow - PADDING;
+    }
+
+    if (xOffset !== 0 || yOffset !== 0) {
+        var newCenter = map.containerPointToLatLng(map.latLngToContainerPoint(map.getCenter()).subtract([xOffset, yOffset]));
+        map.panTo(newCenter);
+    }
+  });
 
       // Fetching objects from server
       function fetchObjects() {
@@ -111,6 +201,17 @@
   });
   }
 
+  function searchLocation(value) {
+    ymaps.geocode(value, {
+        results: 1
+    }).then(function (response) {
+        var obj = response.geoObjects.get(0),
+            coords = obj.geometry.getCoordinates();
+
+        map.flyTo([coords[0], coords[1]], 10);
+    });
+  }
+
   function displayObjects(objects) {
   // Remove old markers
   Object.values(markers).flat().forEach(marker => marker.remove());
@@ -145,7 +246,7 @@
     }
   }
 
-  updateVisibleMarkers(); // Call this function outside the loop
+  updateVisibleMarkers();
   }
 
   function updateVisibleMarkers() {
@@ -188,14 +289,12 @@
       $('.vnoCheckbox[value="' + vno.value + '"]').prop("checked", vno.checked);
     });
 
-    // Обрабатываем состояние "All" и блокируем другие чекбоксы
     if (settings.allCheckbox) {
       $(".vnoCheckbox, #otherCheckbox").prop("checked", true).prop("disabled", true);
     }
 
     $('#filter').on('change', 'input[type=checkbox]', function() {
       updateVisibleMarkers();
-      // saveFilterSettings(); // Если нужно, раскомментируйте эту строку
     });
 
     if (settings.allCheckbox) {
@@ -265,7 +364,12 @@
               "<br>Temp: " +
               temp;
 
-            marker.bindPopup(popupContent).openPopup();
+              marker.bindPopup(popupContent, { 
+    autoPan: true,
+    autoPanPaddingTopLeft: L.point(0, 40),
+    autoPanPaddingBottomRight: L.point(0, 10)
+  }).openPopup();
+
           },
           error: function (err) {
             console.error("Error while fetching detailed information:", err);
@@ -283,8 +387,51 @@
     $(".vnoCheckbox, #otherCheckbox").prop("checked", false).prop("disabled", false);
   }
   });
+
+  $('#clearInput').on('click', function() {
+        $('#search').val('').focus();
+        $(this).hide();
+    });
+
+    $('#search').on('input', function() {
+        if ($(this).val().length > 0) {
+            $('#clearInput').show();
+        } else {
+            $('#clearInput').hide();
+        }
+    });
+
         fetchObjects();
         loadFilterSettings();
+
+        $('#startSearch').click(function() {
+        var value = $('#search').val();
+        if (value) {
+            searchLocation(value);
+        }
+    });
+
+    $('#search').on('keyup', function(e) {
+        if (e.keyCode == 13) {
+            var value = $(this).val();
+            if (value) {
+                searchLocation(value);
+            }
+        }
+    });
+
+    ymaps.ready(function() {
+        var suggestView = new ymaps.SuggestView('search', {
+            results: 7,
+            boundedBy: [[54.0, 56.0], [72.0, 70.0]] //Relevant region
+   });
+
+    suggestView.events.add('select', function (event) {
+        var selectedItem = event.get('item'),
+            value = selectedItem.value;
+            searchLocation(value);
+    });
+    });
       });
   </script>
 </body>
