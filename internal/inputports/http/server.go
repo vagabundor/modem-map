@@ -46,6 +46,11 @@ func (httpServer *Server) AddGeomapHttpRoutes() {
 	httpServer.router.HandleFunc(HTTPRoutePath, geomap.NewHandler(httpServer.templatesDir).Handle).Methods("GET")
 }
 
+func (httpServer *Server) AddStaticRoutes() {
+	// Serve static files from the ./static directory
+	httpServer.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+}
+
 // ListenAndServe Starts listening for requests
 func (httpServer *Server) ListenAndServe() {
 	log.Fatal(http.ListenAndServe(httpServer.listenAddr, nil))
