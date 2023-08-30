@@ -28,12 +28,24 @@
       right: 10px;
       z-index: 1000;
       background-color: white;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      padding: 0px;
+      border: 1px solid #000000;
+      border-radius: 10px;
       box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
       font-family: 'Arial', sans-serif;
     }
+
+  #filter h2 {
+  background-color: #7da3bb;
+  color: #fff;
+  font-weight: bold;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 2px;
+  margin: 0;
+  border-bottom: 2px solid #000;
+  border-radius: 10px 10px 0 0;
+  }
 
   #filter h3 {
   font-weight: bold;
@@ -45,6 +57,10 @@
   display: block;
   margin: 1px 0;
   }
+
+  #filter .content {
+    padding: 10px;
+}
 
   #filter input[type="checkbox"] {
   margin-right: 5px;
@@ -106,12 +122,19 @@
     background-color: rgba(255, 255, 255, 0.8);
   }
 
-  </style>
+</style>
 </head>
 <body>
   <div id="filter">
-    <h3>VNO Group Filter</h3><label><input type="checkbox" id="allCheckbox" checked>All</label>
-    <div id="dynamicCheckboxes"></div><label><input type="checkbox" id="otherCheckbox">Other</label>
+    <h2>Filters</h2>
+    <div class="content">
+    <h3>VNO Group</h3><label><input type="checkbox" id="allCheckboxVno" checked>All</label>
+    <div id="dynamicVNOCheckboxes"></div><label><input type="checkbox" id="otherCheckboxVno">Other</label>
+    <hr>
+    <h3>Hub Name</h3>
+    <label><input type="checkbox" id="allCheckboxHubName" checked>All</label>
+    <div id="dynamicHubCheckboxes"></div>
+    </div>
   </div>
   <div id="searchContainer">
     <input type="text" id="search" placeholder="Search here..."> <button id="clearInput" class="search-btn" title="Clear"><i class="fas fa-times"></i></button> <button id="startSearch" class="search-btn" title="Search"><i class="fas fa-search"></i></button>
@@ -172,8 +195,8 @@
           dataType: "json",
           success: function (data) {
             console.log(data);
-            displayVnoNames(data);
-                              displayObjects(data);
+            displayFilterCheckboxes(data);
+            displayObjects(data);
             loadFilterSettings();
         },
       error: function (err) {
@@ -182,23 +205,29 @@
     });
   }
 
-      // Function to display the VNO names as checkboxes
-      function displayVnoNames(objects) {
-        var vnoNames = new Set();
-  objects.forEach((object) => {
-    if (object.VnoName) {
-      vnoNames.add(object.VnoName);
-    }
-  });
+  // Function to display filter checkboxes
+  function displayFilterCheckboxes(objects) {
+    var vnoNames = new Set();
+    var hubNames = new Set();
+    objects.forEach(function(object) {
+      if (object.VnoName) {
+        vnoNames.add(object.VnoName);
+      }
+      hubNames.add(object.HubName);
+    });
 
   vnoNames.forEach((name) => {
-    $('#dynamicCheckboxes').append(`<label><input type="checkbox" class="vnoCheckbox" value="${name}">${name}</label>`);
+    $('#dynamicVNOCheckboxes').append(`<label><input type="checkbox" class="vnoCheckbox" value="${name}">${name}</label>`);
+  });
+
+  hubNames.forEach((name) => {
+    $('#dynamicHubCheckboxes').append(`<label><input type="checkbox" class="hubCheckbox" value="${name}">${name}</label>`);
   });
 
   // Event handler to update visible markers whenever any checkbox changes
   $('#filter').on('change', 'input[type=checkbox]', function() {
-  updateVisibleMarkers();
-  saveFilterSettings();
+    updateVisibleMarkers();
+    saveFilterSettings();
   });
   }
 
@@ -231,6 +260,8 @@
           object.GeoLocation.Long,
         ]);
 
+        marker.object = object;
+
         marker.on(
           "click",
           (function (marker, object) {
@@ -250,63 +281,106 @@
   updateVisibleMarkers();
   }
 
+
   function updateVisibleMarkers() {
   // Remove all markers
   Object.values(markers).flat().forEach(marker => marker.remove());
 
-  // Add markers by checkbox selections
-  if ($('#allCheckbox').prop("checked")) {
-    Object.values(markers).flat().forEach(marker => marker.addTo(map));
+  var selectedVNOs = new Set();
+  var selectedHubs = new Set();
+
+  // Add selected VNOs
+  if ($('#allCheckboxVno').prop("checked")) {
+    selectedVNOs = new Set(Object.keys(markers));
   } else {
     $('.vnoCheckbox:checked').each(function() {
-      markers[$(this).val()]?.forEach(marker => marker.addTo(map));
+      selectedVNOs.add($(this).val());
     });
-
-    if ($('#otherCheckbox').prop("checked")) {
-      markers['Other']?.forEach(marker => marker.addTo(map));
+    if ($('#otherCheckboxVno').prop("checked")) {
+      selectedVNOs.add('Other');
     }
   }
-  }
 
-  function saveFilterSettings() {
+  // Add selected Hubs
+  if ($('#allCheckboxHubName').prop("checked")) {
+    selectedHubs = allHubs;
+  } else {
+    $('.hubCheckbox:checked').each(function() {
+    selectedHubs.add($(this).val());
+  });
+}
+
+  // Add markers by checkbox selections
+  Object.keys(markers).forEach(function(key) {
+    var markerArray = markers[key];
+    markerArray.forEach(function(marker) {
+      var object = marker.object;
+      var vnoMatches = object.VnoName ? selectedVNOs.has(object.VnoName) : selectedVNOs.has('Other');
+      if (vnoMatches && selectedHubs.has(object.HubName)) {
+        marker.addTo(map);
+      }
+    });
+  });
+}
+
+var allHubs = new Set();
+
+function saveFilterSettings() {
   var settings = {
-    allCheckbox: $("#allCheckbox").prop("checked"),
-    otherCheckbox: $("#otherCheckbox").prop("checked"),
+    allCheckboxVno: $("#allCheckboxVno").prop("checked"),
+    allCheckboxHubName: $("#allCheckboxHubName").prop("checked"),
+    otherCheckboxVno: $("#otherCheckboxVno").prop("checked"),
     vnoCheckboxes: $(".vnoCheckbox").map(function () {
+      return { value: $(this).val(), checked: $(this).prop("checked") };
+    }).get(),
+    hubCheckboxes: $(".hubCheckbox").map(function () {
       return { value: $(this).val(), checked: $(this).prop("checked") };
     }).get()
   };
   localStorage.setItem("filterSettings", JSON.stringify(settings));
-  }
+}
 
-  function loadFilterSettings() {
+function loadFilterSettings() {
+  Object.values(markers).flat().forEach(marker => allHubs.add(marker.object.HubName));
   var settings = JSON.parse(localStorage.getItem("filterSettings"));
   if (settings) {
-    $('#filter input[type=checkbox]').off('change');
+    var checkboxes = $('#filter input[type=checkbox]');
 
-    $("#allCheckbox").prop("checked", settings.allCheckbox);
-    $("#otherCheckbox").prop("checked", settings.otherCheckbox);
+    checkboxes.off('change');
+
+    $("#allCheckboxVno").prop("checked", settings.allCheckboxVno);
+    $("#allCheckboxHubName").prop("checked", settings.allCheckboxHubName);
+    $("#otherCheckboxVno").prop("checked", settings.otherCheckboxVno);
+
     settings.vnoCheckboxes.forEach(function (vno) {
       $('.vnoCheckbox[value="' + vno.value + '"]').prop("checked", vno.checked);
     });
 
-    if (settings.allCheckbox) {
-      $(".vnoCheckbox, #otherCheckbox").prop("checked", true).prop("disabled", true);
-    }
-
-    $('#filter').on('change', 'input[type=checkbox]', function() {
-      updateVisibleMarkers();
+    settings.hubCheckboxes.forEach(function (hub) {
+      $('.hubCheckbox[value="' + hub.value + '"]').prop("checked", hub.checked);
     });
 
-    if (settings.allCheckbox) {
-      $("#filter input[type=checkbox]").not("#allCheckbox").prop("disabled", true);
-    } else {
-      $("#filter input[type=checkbox]").not("#allCheckbox").prop("disabled", false);
-    }
+    $('#allCheckboxVno').on('change', function() {
+      var checked = $(this).prop('checked');
+      $(".vnoCheckbox, #otherCheckboxVno").prop("checked", checked).prop("disabled", checked);
+    });
+
+    $('#allCheckboxHubName').on('change', function() {
+      var checked = $(this).prop('checked');
+      $(".hubCheckbox").not("#allCheckboxHubName").prop("checked", checked).prop("disabled", checked);
+    });
+
+    $(".vnoCheckbox, #otherCheckboxVno").prop("disabled", settings.allCheckboxVno);
+    $(".hubCheckbox").not("#allCheckboxHubName").prop("disabled", settings.allCheckboxHubName);
 
     updateVisibleMarkers();
+
+    checkboxes.on('change', function(event, triggerChange) {
+      if (triggerChange === false) return;
+      updateVisibleMarkers();
+    });
   }
-  }
+}
 
       // Fetch detailed information about the object and display it in the popup
       function fetchDetailedInfo(marker, object) {
@@ -381,11 +455,11 @@
       // Initialization on page loading
       $(document).ready(function () {
         // Event handler for the "All" checkbox
-  $("#allCheckbox").click(function () {
+  $("#allCheckboxVno").click(function () {
   if ($(this).prop("checked")) {
-    $(".vnoCheckbox, #otherCheckbox").prop("checked", true).prop("disabled", true);
+    $(".vnoCheckbox, #otherCheckboxVno").prop("checked", true).prop("disabled", true);
   } else {
-    $(".vnoCheckbox, #otherCheckbox").prop("checked", false).prop("disabled", false);
+    $(".vnoCheckbox, #otherCheckboxVno").prop("checked", false).prop("disabled", false);
   }
   });
 
