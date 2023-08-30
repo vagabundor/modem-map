@@ -129,7 +129,7 @@
     <h2>Filters</h2>
     <div class="content">
     <h3>VNO Group</h3><label><input type="checkbox" id="allCheckboxVno" checked>All</label>
-    <div id="dynamicVNOCheckboxes"></div><label><input type="checkbox" id="otherCheckboxVno">Other</label>
+    <div id="dynamicVNOCheckboxes"></div><label><input type="checkbox" id="otherCheckboxVno" checked disabled>Other</label>
     <hr>
     <h3>Hub Name</h3>
     <label><input type="checkbox" id="allCheckboxHubName" checked>All</label>
@@ -195,8 +195,8 @@
           dataType: "json",
           success: function (data) {
             console.log(data);
-            displayFilterCheckboxes(data);
             displayObjects(data);
+            displayFilterCheckboxes(data);
             loadFilterSettings();
         },
       error: function (err) {
@@ -217,11 +217,11 @@
     });
 
   vnoNames.forEach((name) => {
-    $('#dynamicVNOCheckboxes').append(`<label><input type="checkbox" class="vnoCheckbox" value="${name}">${name}</label>`);
+    $('#dynamicVNOCheckboxes').append(`<label><input type="checkbox" class="vnoCheckbox" value="${name}" checked disabled>${name}</label>`);
   });
 
   hubNames.forEach((name) => {
-    $('#dynamicHubCheckboxes').append(`<label><input type="checkbox" class="hubCheckbox" value="${name}">${name}</label>`);
+    $('#dynamicHubCheckboxes').append(`<label><input type="checkbox" class="hubCheckbox" value="${name}" checked disabled>${name}</label>`);
   });
 
   // Event handler to update visible markers whenever any checkbox changes
@@ -229,7 +229,11 @@
     updateVisibleMarkers();
     saveFilterSettings();
   });
-  }
+
+   // Trigger change event on all checkboxes to update their state
+   $('#filter input[type=checkbox]').trigger('change');
+}
+  
 
   function searchLocation(value) {
     ymaps.geocode(value, {
@@ -453,15 +457,8 @@ function loadFilterSettings() {
       }
 
       // Initialization on page loading
-      $(document).ready(function () {
-        // Event handler for the "All" checkbox
-  $("#allCheckboxVno").click(function () {
-  if ($(this).prop("checked")) {
-    $(".vnoCheckbox, #otherCheckboxVno").prop("checked", true).prop("disabled", true);
-  } else {
-    $(".vnoCheckbox, #otherCheckboxVno").prop("checked", false).prop("disabled", false);
-  }
-  });
+  $(document).ready(function () {
+
 
   $('#clearInput').on('click', function() {
         $('#search').val('').focus();
