@@ -196,8 +196,7 @@
           success: function (data) {
             console.log(data);
             displayObjects(data);
-            displayFilterCheckboxes(data);
-            loadFilterSettings();
+            displayFilterCheckboxes(data, loadFilterSettings);
         },
       error: function (err) {
         console.error("Error while getting modems from server", err);
@@ -206,7 +205,7 @@
   }
 
   // Function to display filter checkboxes
-  function displayFilterCheckboxes(objects) {
+  function displayFilterCheckboxes(objects, callback) {
     var vnoNames = new Set();
     var hubNames = new Set();
     objects.forEach(function(object) {
@@ -230,8 +229,9 @@
     saveFilterSettings();
   });
 
-   // Trigger change event on all checkboxes to update their state
-   $('#filter input[type=checkbox]').trigger('change');
+   if (typeof callback === "function") {
+        callback();
+    }
 }
   
 
@@ -342,12 +342,23 @@ function saveFilterSettings() {
     }).get()
   };
   localStorage.setItem("filterSettings", JSON.stringify(settings));
+  console.log('Saved settings:', JSON.parse(localStorage.getItem("filterSettings")));
 }
 
 function loadFilterSettings() {
-  Object.values(markers).flat().forEach(marker => allHubs.add(marker.object.HubName));
-  var settings = JSON.parse(localStorage.getItem("filterSettings"));
-  if (settings) {
+    Object.values(markers).flat().forEach(marker => allHubs.add(marker.object.HubName));
+    var settings = JSON.parse(localStorage.getItem("filterSettings"));
+
+    if (!settings) {
+        settings = {
+            allCheckboxVno: $("#allCheckboxVno").prop("checked"),
+            allCheckboxHubName: $("#allCheckboxHubName").prop("checked"),
+            otherCheckboxVno: $("#otherCheckboxVno").prop("checked"),
+            vnoCheckboxes: [],
+            hubCheckboxes: []
+        };
+    }
+
     var checkboxes = $('#filter input[type=checkbox]');
 
     checkboxes.off('change');
@@ -357,33 +368,32 @@ function loadFilterSettings() {
     $("#otherCheckboxVno").prop("checked", settings.otherCheckboxVno);
 
     settings.vnoCheckboxes.forEach(function (vno) {
-      $('.vnoCheckbox[value="' + vno.value + '"]').prop("checked", vno.checked);
+        $('.vnoCheckbox[value="' + vno.value + '"]').prop("checked", vno.checked);
     });
 
     settings.hubCheckboxes.forEach(function (hub) {
-      $('.hubCheckbox[value="' + hub.value + '"]').prop("checked", hub.checked);
+        $('.hubCheckbox[value="' + hub.value + '"]').prop("checked", hub.checked);
     });
 
     $('#allCheckboxVno').on('change', function() {
-      var checked = $(this).prop('checked');
-      $(".vnoCheckbox, #otherCheckboxVno").prop("checked", checked).prop("disabled", checked);
+        var checked = $(this).prop('checked');
+        $(".vnoCheckbox, #otherCheckboxVno").prop("checked", checked).prop("disabled", checked);
     });
 
     $('#allCheckboxHubName').on('change', function() {
-      var checked = $(this).prop('checked');
-      $(".hubCheckbox").not("#allCheckboxHubName").prop("checked", checked).prop("disabled", checked);
+        var checked = $(this).prop('checked');
+        $(".hubCheckbox").not("#allCheckboxHubName").prop("checked", checked).prop("disabled", checked);
     });
 
     $(".vnoCheckbox, #otherCheckboxVno").prop("disabled", settings.allCheckboxVno);
     $(".hubCheckbox").not("#allCheckboxHubName").prop("disabled", settings.allCheckboxHubName);
 
-    updateVisibleMarkers();
-
     checkboxes.on('change', function(event, triggerChange) {
-      if (triggerChange === false) return;
-      updateVisibleMarkers();
+        if (triggerChange === false) return;
+        updateVisibleMarkers();
     });
-  }
+
+    updateVisibleMarkers();
 }
 
       // Fetch detailed information about the object and display it in the popup
@@ -474,7 +484,6 @@ function loadFilterSettings() {
     });
 
         fetchObjects();
-        loadFilterSettings();
 
         $('#startSearch').click(function() {
         var value = $('#search').val();
