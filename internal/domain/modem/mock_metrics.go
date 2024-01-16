@@ -8,8 +8,8 @@ type MockMetrics struct {
 	mock.Mock
 }
 
-// UpdateMetrics provides a mock function with given fields: modem
-func (_m *MockMetrics) UpdateMetrics(modem *Modem) error {
+// UpdateModemDetails provides a mock function with given fields: modem
+func (_m *MockMetrics) UpdateModemDetails(modem *Modem) error {
 	ret := _m.Called(modem)
 
 	var r0 error
@@ -22,8 +22,8 @@ func (_m *MockMetrics) UpdateMetrics(modem *Modem) error {
 	return r0
 }
 
-// UpdateStatus provides a mock function with given fields: modems
-func (_m *MockMetrics) UpdateStatus(modems []*ModemShort) error {
+// UpdateAllModems provides a mock function with given fields: modems
+func (_m *MockMetrics) UpdateAllModems(modems []*ModemShort) error {
 	ret := _m.Called(modems)
 
 	var r0 error

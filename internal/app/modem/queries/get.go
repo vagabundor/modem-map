@@ -61,7 +61,7 @@ func (h getRequestHandler) Handle(query GetRequest) (GetResult, error) {
 			geo.DMS{Degrees: m.LongDegrees, Minutes: m.LongMinutes, Seconds: m.LongSeconds, Direction: m.LongWest})
 
 		// Get metrics data for modem
-		err := h.metrics.UpdateMetrics(m)
+		err := h.metrics.UpdateModemDetails(m)
 		if err != nil {
 			return GetResult{}, err
 		}

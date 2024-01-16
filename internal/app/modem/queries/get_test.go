@@ -40,7 +40,7 @@ func TestGetHandle(t *testing.T) {
 			ReflectorSize: 2.5,
 		}
 
-		mockMetrics.On("UpdateMetrics", mock.Anything).Return(nil)
+		mockMetrics.On("UpdateModemDetails", mock.Anything).Return(nil)
 
 		mockRepo.On("Get", mockModem.ID).Return(&mockModem, nil)
 		mockRepo.On("RepoName", mockModem.ID.HubID).Return("TestHub", nil)

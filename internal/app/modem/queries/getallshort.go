@@ -45,7 +45,7 @@ func (h getAllShortRequestHandler) Handle() ([]GetAllShortResult, error) {
 	}
 
 	// Get metrics data for modem
-	err = h.metrics.UpdateStatus(ms)
+	err = h.metrics.UpdateAllModems(ms)
 	if err != nil {
 		return nil, err
 	}

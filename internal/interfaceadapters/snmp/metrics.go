@@ -66,7 +66,7 @@ func NewMetrics(snmps []*gosnmp.GoSNMP) Metrics {
 	return metrics
 }
 
-func (m Metrics) UpdateMetrics(modem *modem.Modem) error {
+func (m Metrics) UpdateModemDetails(modem *modem.Modem) error {
 
 	oidslist := make([]string, 0, len(m.oids))
 
@@ -107,7 +107,7 @@ func (m Metrics) UpdateMetrics(modem *modem.Modem) error {
 	return nil
 }
 
-func (m Metrics) UpdateStatus(modems []*modem.ModemShort) error {
+func (m Metrics) UpdateAllModems(modems []*modem.ModemShort) error {
 	for _, modem := range modems {
 		i := modem.HubID
 		resp, err := m.snmps[i].Get([]string{m.oids["Status"] + strconv.Itoa(modem.DID)})
