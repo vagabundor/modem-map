@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"modem-map/internal/app/config"
 	"modem-map/internal/domain/modem"
+	"modem-map/internal/pkg/geo"
 	"strconv"
 	"time"
 
@@ -61,6 +62,7 @@ func NewMetrics(snmps []*gosnmp.GoSNMP) Metrics {
 			"Downsnr": ".1.3.6.1.4.1.13732.1.4.3.1.2.",
 			"Temp":    ".1.3.6.1.4.1.13732.1.4.3.1.8.",
 			"Status":  ".1.3.6.1.4.1.13732.1.1.1.1.15.",
+			"LatLong": ".1.3.6.1.4.1.13732.1.1.1.1.16.",
 		},
 	}
 	return metrics
@@ -69,9 +71,10 @@ func NewMetrics(snmps []*gosnmp.GoSNMP) Metrics {
 func (m Metrics) UpdateModemDetails(modem *modem.Modem) error {
 
 	oidslist := make([]string, 0, len(m.oids))
+	strDID := strconv.Itoa(modem.DID)
 
 	for _, oid := range m.oids {
-		oidslist = append(oidslist, oid+strconv.Itoa(modem.DID))
+		oidslist = append(oidslist, oid+strDID)
 	}
 
 	i := modem.HubID
@@ -81,7 +84,6 @@ func (m Metrics) UpdateModemDetails(modem *modem.Modem) error {
 		return err
 	}
 
-	strDID := strconv.Itoa(modem.DID)
 	for _, variable := range resp.Variables {
 		switch variable.Name {
 		case m.oids["Upsnr"] + strDID:
@@ -110,13 +112,13 @@ func (m Metrics) UpdateModemDetails(modem *modem.Modem) error {
 func (m Metrics) UpdateAllModems(modems []*modem.ModemShort) error {
 	for _, modem := range modems {
 		i := modem.HubID
-		resp, err := m.snmps[i].Get([]string{m.oids["Status"] + strconv.Itoa(modem.DID)})
+		strDID := strconv.Itoa(modem.DID)
+		resp, err := m.snmps[i].Get([]string{m.oids["Status"] + strDID})
 		if err != nil {
 			err = fmt.Errorf("Requesting snmp: %w", err)
 			return err
 		}
 
-		strDID := strconv.Itoa(modem.DID)
 		for _, variable := range resp.Variables {
 			switch variable.Name {
 			case m.oids["Status"] + strDID:
@@ -129,4 +131,32 @@ func (m Metrics) UpdateAllModems(modems []*modem.ModemShort) error {
 		}
 	}
 	return nil
+}
+
+func (m Metrics) GetLatLong(modem *modem.ModemShort) (geo.DD, error) {
+	var result geo.DD
+	i := modem.HubID
+	strDID := strconv.Itoa(modem.DID)
+
+	resp, err := m.snmps[i].Get([]string{m.oids["LatLong"] + strDID})
+	if err != nil {
+		err = fmt.Errorf("Requesting snmp: %w", err)
+		return result, err
+	}
+
+	for _, variable := range resp.Variables {
+		switch variable.Name {
+		case m.oids["LatLong"] + strDID:
+			if variable.Value != nil {
+				if val, ok := variable.Value.([]uint8); ok {
+					result, err = geo.StringToDecimal(string(val))
+					if err != nil {
+						return result, err
+					}
+				}
+			}
+
+		}
+	}
+	return result, nil
 }

@@ -16,6 +16,7 @@ type GetAllShortResult struct {
 	ActiveStatus int16
 	Status       string
 	VnoName      string
+	IsMobile     bool
 	GeoLocation  geo.DD
 }
 
@@ -58,8 +59,18 @@ func (h getAllShortRequestHandler) Handle() ([]GetAllShortResult, error) {
 			return nil, err
 		}
 
-		geo := geo.ToDecimal(geo.DMS{Degrees: m.LatDegrees, Minutes: m.LatMinutes, Seconds: m.LatSeconds, Direction: m.LatSouth},
-			geo.DMS{Degrees: m.LongDegrees, Minutes: m.LongMinutes, Seconds: m.LongSeconds, Direction: m.LongWest})
+		ismoble := m.IsMobile != 0
+
+		var geoloc geo.DD
+		if ismoble {
+			geoloc, err = h.metrics.GetLatLong(m)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			geoloc = geo.ToDecimal(geo.DMS{Degrees: m.LatDegrees, Minutes: m.LatMinutes, Seconds: m.LatSeconds, Direction: m.LatSouth},
+				geo.DMS{Degrees: m.LongDegrees, Minutes: m.LongMinutes, Seconds: m.LongSeconds, Direction: m.LongWest})
+		}
 
 		result = append(result, GetAllShortResult{
 			ID:           m.NetModemID,
@@ -70,7 +81,8 @@ func (h getAllShortRequestHandler) Handle() ([]GetAllShortResult, error) {
 			ActiveStatus: m.ActiveStatus,
 			Status:       m.Status,
 			VnoName:      m.VnoName,
-			GeoLocation:  geo,
+			IsMobile:     ismoble,
+			GeoLocation:  geoloc,
 		})
 
 	}

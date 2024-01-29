@@ -1,7 +1,10 @@
 package geo
 
 import (
+	"fmt"
 	"math"
+	"regexp"
+	"strconv"
 )
 
 // DMS is Degrees Minutes Seconds coordinates
@@ -30,4 +33,37 @@ func ToDecimal(latdms DMS, longdms DMS) DD {
 		long = -long
 	}
 	return DD{Lat: lat, Long: long}
+}
+
+// StringToDecimal converts String to DD
+// STRING: "LAT-LONG : [LAT = 68.96968N LONG = 33.05082E]"
+func StringToDecimal(input string) (DD, error) {
+	var result DD
+	re := regexp.MustCompile(`LAT = ([\d\.]+)([NS]) LONG = ([\d\.]+)([EW])`)
+	matches := re.FindStringSubmatch(input)
+
+	if len(matches) != 5 {
+		return result, fmt.Errorf("invalid format")
+	}
+
+	lat, err := strconv.ParseFloat(matches[1], 64)
+	if err != nil {
+		return result, fmt.Errorf("invalid latitude")
+	}
+	if matches[2] == "S" {
+		lat = -lat
+	}
+
+	long, err := strconv.ParseFloat(matches[3], 64)
+	if err != nil {
+		return result, fmt.Errorf("invalid longitude")
+	}
+	if matches[4] == "W" {
+		long = -long
+	}
+
+	result.Lat = lat
+	result.Long = long
+
+	return result, nil
 }

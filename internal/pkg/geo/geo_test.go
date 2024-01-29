@@ -60,3 +60,50 @@ func TestToDecimal(t *testing.T) {
 		})
 	}
 }
+
+func TestStringToDecimal(t *testing.T) {
+	testCases := []struct {
+		name      string
+		input     string
+		expected  DD
+		expectErr bool
+	}{
+		{
+			name:  "Valid Coordinates",
+			input: "LAT = 68.96968N LONG = 33.05082E",
+			expected: DD{
+				Lat:  68.96968,
+				Long: 33.05082,
+			},
+			expectErr: false,
+		},
+		{
+			name:      "Invalid Format",
+			input:     "LATITUDE = 68.96968N LONGITUDE = 33.05082E",
+			expected:  DD{},
+			expectErr: true,
+		},
+		{
+			name:  "Negative Coordinates - South and West",
+			input: "LAT = 10.12345S LONG = 20.67890W",
+			expected: DD{
+				Lat:  -10.12345,
+				Long: -20.67890,
+			},
+			expectErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := StringToDecimal(tc.input)
+
+			if tc.expectErr {
+				assert.Error(t, err, "Expected an error for case: %v", tc.name)
+			} else {
+				assert.NoError(t, err, "Did not expect an error for case: %v", tc.name)
+				assert.Equal(t, tc.expected, result, "Expected and actual values differ for case: %v", tc.name)
+			}
+		})
+	}
+}

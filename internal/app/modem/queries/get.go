@@ -57,8 +57,19 @@ func (h getRequestHandler) Handle(query GetRequest) (GetResult, error) {
 
 	var result GetResult
 	if m != nil {
-		geo := geo.ToDecimal(geo.DMS{Degrees: m.LatDegrees, Minutes: m.LatMinutes, Seconds: m.LatSeconds, Direction: m.LatSouth},
-			geo.DMS{Degrees: m.LongDegrees, Minutes: m.LongMinutes, Seconds: m.LongSeconds, Direction: m.LongWest})
+
+		ismoble := m.IsMobile != 0
+
+		var geoloc geo.DD
+		if ismoble {
+			geoloc, err = h.metrics.GetLatLong(&m.ModemShort)
+			if err != nil {
+				return result, err
+			}
+		} else {
+			geoloc = geo.ToDecimal(geo.DMS{Degrees: m.LatDegrees, Minutes: m.LatMinutes, Seconds: m.LatSeconds, Direction: m.LatSouth},
+				geo.DMS{Degrees: m.LongDegrees, Minutes: m.LongMinutes, Seconds: m.LongSeconds, Direction: m.LongWest})
+		}
 
 		// Get metrics data for modem
 		err := h.metrics.UpdateModemDetails(m)
@@ -74,7 +85,7 @@ func (h getRequestHandler) Handle(query GetRequest) (GetResult, error) {
 			NetModemName:  m.NetModemName,
 			ActiveStatus:  m.ActiveStatus,
 			Status:        m.Status,
-			GeoLocation:   geo,
+			GeoLocation:   geoloc,
 			Model:         m.Model,
 			ReflectorSize: m.ReflectorSize,
 			Buc:           m.Buc,

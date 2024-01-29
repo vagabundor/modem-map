@@ -46,7 +46,7 @@ func (sq Repo) GetAllShort() ([]*modem.ModemShort, error) {
 	for i, db := range sq.dbs {
 		var modems []*modem.ModemShort
 		result := db.Table("NetModem AS nm").
-			Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, "+
+			Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.IsMobile, "+
 				"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
 				"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest, "+
 				"vno.Name").
@@ -79,7 +79,7 @@ func (sq Repo) Get(id modem.ID) (*modem.Modem, error) {
 
 	db := sq.dbs[id.HubID]
 	result := db.Table("NetModem AS nm").
-		Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType, "+
+		Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType, nm.IsMobile, "+
 			"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
 			"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest, "+
 			"r.Size, buc.ManufacturerPartNum AS Buc, lnb.ManufacturerPartNum AS Lnb").
