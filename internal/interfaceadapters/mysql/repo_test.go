@@ -41,6 +41,7 @@ func TestRepo_GetAllShort(t *testing.T) {
 			ModemSn:      12345,
 			NetModemName: "Test Modem 1",
 			ActiveStatus: 1,
+			IsMobile:     0,
 			Geo: modem.Geo{
 				LatDegrees:  12,
 				LatMinutes:  34,
@@ -62,6 +63,7 @@ func TestRepo_GetAllShort(t *testing.T) {
 			ModemSn:      67890,
 			NetModemName: "Test Modem 2",
 			ActiveStatus: 1,
+			IsMobile:     1,
 			Geo: modem.Geo{
 				LatDegrees:  23,
 				LatMinutes:  45,
@@ -94,7 +96,7 @@ func TestRepo_GetAllShort(t *testing.T) {
 				// Add expectation for the "SELECT VERSION()" query
 				mock.ExpectQuery("^SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow("5.7.32"))
 
-				mock.ExpectQuery("^SELECT nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, " +
+				mock.ExpectQuery("^SELECT nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.IsMobile, " +
 					"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, " +
 					"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, " +
 					"gl.LatSouth, gl.LongWest, vno.Name " +
@@ -103,13 +105,13 @@ func TestRepo_GetAllShort(t *testing.T) {
 					"LEFT JOIN GeoLocation AS gl ON loc.GeoLocationID = gl.GeoLocationID " +
 					"LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.NetModemId = vnoRes.ResourceId " +
 					"LEFT JOIN VNOGroup vno ON vnoRes.GroupId = vno.ID").
-					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "DID", "ModemSn", "NetModemName", "ActiveStatus", "LatDegrees", "LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "Name"}).
-						AddRow(mockModems[0].ID.NetModemID, mockModems[0].ID.DID, mockModems[0].ModemSn, mockModems[0].NetModemName, mockModems[0].ActiveStatus,
+					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "DID", "ModemSn", "NetModemName", "ActiveStatus", "IsMobile", "LatDegrees", "LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "Name"}).
+						AddRow(mockModems[0].ID.NetModemID, mockModems[0].ID.DID, mockModems[0].ModemSn, mockModems[0].NetModemName, mockModems[0].ActiveStatus, mockModems[0].IsMobile,
 							mockModems[0].Geo.LatDegrees, mockModems[0].Geo.LatMinutes, mockModems[0].Geo.LatSeconds,
 							mockModems[0].Geo.LongDegrees, mockModems[0].Geo.LongMinutes, mockModems[0].Geo.LongSeconds,
 							mockModems[0].Geo.LatSouth, mockModems[0].Geo.LongWest, mockModems[0].VnoName))
 
-				mock.ExpectQuery("^SELECT nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, " +
+				mock.ExpectQuery("^SELECT nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.IsMobile, " +
 					"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, " +
 					"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, " +
 					"gl.LatSouth, gl.LongWest, vno.Name " +
@@ -118,8 +120,8 @@ func TestRepo_GetAllShort(t *testing.T) {
 					"LEFT JOIN GeoLocation AS gl ON loc.GeoLocationID = gl.GeoLocationID " +
 					"LEFT JOIN VNOGroupOwnedResource vnoRes ON nm.NetModemId = vnoRes.ResourceId " +
 					"LEFT JOIN VNOGroup vno ON vnoRes.GroupId = vno.ID").
-					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "DID", "ModemSn", "NetModemName", "ActiveStatus", "LatDegrees", "LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "Name"}).
-						AddRow(mockModems[1].ID.NetModemID, mockModems[1].ID.DID, mockModems[1].ModemSn, mockModems[1].NetModemName, mockModems[1].ActiveStatus,
+					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "DID", "ModemSn", "NetModemName", "ActiveStatus", "IsMobile", "LatDegrees", "LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "Name"}).
+						AddRow(mockModems[1].ID.NetModemID, mockModems[1].ID.DID, mockModems[1].ModemSn, mockModems[1].NetModemName, mockModems[1].ActiveStatus, mockModems[1].IsMobile,
 							mockModems[1].Geo.LatDegrees, mockModems[1].Geo.LatMinutes, mockModems[1].Geo.LatSeconds,
 							mockModems[1].Geo.LongDegrees, mockModems[1].Geo.LongMinutes, mockModems[1].Geo.LongSeconds,
 							mockModems[1].Geo.LatSouth, mockModems[1].Geo.LongWest, mockModems[1].VnoName))
@@ -176,6 +178,7 @@ func TestRepo_Get(t *testing.T) {
 			ModemSn:      12345,
 			NetModemName: "Test Modem 1",
 			ActiveStatus: 1,
+			IsMobile:     0,
 			Geo: modem.Geo{
 				LatDegrees:  12,
 				LatMinutes:  34,
@@ -211,14 +214,14 @@ func TestRepo_Get(t *testing.T) {
 				// Add expectation for the "SELECT VERSION()" query
 				mock.ExpectQuery("^SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow("5.7.32"))
 				// Add expectation for the query to get modem data
-				mock.ExpectQuery("^SELECT nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType, " +
+				mock.ExpectQuery("^SELECT nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.IsMobile, nm.HwType, " +
 					"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, " +
 					"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, " +
 					"gl.LatSouth, gl.LongWest, r.Size, buc.ManufacturerPartNum AS Buc, " +
 					"lnb.ManufacturerPartNum AS Lnb FROM NetModem AS nm").
-					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "DID", "ModemSn", "NetModemName", "ActiveStatus", "Model", "LatDegrees",
+					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "DID", "ModemSn", "NetModemName", "ActiveStatus", "IsMobile", "Model", "LatDegrees",
 						"LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "ReflectorSize", "Buc", "Lnb"}).
-						AddRow(mockModem.ID.NetModemID, mockModem.ID.DID, mockModem.ModemSn, mockModem.NetModemName, mockModem.ActiveStatus, mockModem.Model,
+						AddRow(mockModem.ID.NetModemID, mockModem.ID.DID, mockModem.ModemSn, mockModem.NetModemName, mockModem.ActiveStatus, mockModem.IsMobile, mockModem.Model,
 							mockModem.Geo.LatDegrees, mockModem.Geo.LatMinutes, mockModem.Geo.LatSeconds,
 							mockModem.Geo.LongDegrees, mockModem.Geo.LongMinutes, mockModem.Geo.LongSeconds,
 							mockModem.Geo.LatSouth, mockModem.Geo.LongWest, mockModem.ReflectorSize, mockModem.Buc, mockModem.Lnb))
@@ -237,12 +240,12 @@ func TestRepo_Get(t *testing.T) {
 				// Add expectation for the "SELECT VERSION()" query
 				mock.ExpectQuery("^SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow("5.7.32"))
 				// Add expectation for the query to get modem data
-				mock.ExpectQuery("^SELECT nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType, " +
+				mock.ExpectQuery("^SELECT nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.IsMobile, nm.HwType, " +
 					"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, " +
 					"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, " +
 					"gl.LatSouth, gl.LongWest, r.Size, " +
 					"buc.ManufacturerPartNum AS Buc, lnb.ManufacturerPartNum AS Lnb FROM NetModem AS nm").
-					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "ModemSn", "NetModemName", "ActiveStatus", "Model", "LatDegrees",
+					WillReturnRows(sqlmock.NewRows([]string{"NetModemId", "ModemSn", "NetModemName", "ActiveStatus", "IsMobile", "Model", "LatDegrees",
 						"LatMinutes", "LatSeconds", "LongDegrees", "LongMinutes", "LongSeconds", "LatSouth", "LongWest", "ReflectorSize", "Buc", "Lnb"}))
 			},
 			input:       modem.ID{NetModemID: 2, HubID: 0},

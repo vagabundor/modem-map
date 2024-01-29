@@ -79,7 +79,7 @@ func (sq Repo) Get(id modem.ID) (*modem.Modem, error) {
 
 	db := sq.dbs[id.HubID]
 	result := db.Table("NetModem AS nm").
-		Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.HwType, nm.IsMobile, "+
+		Select("nm.NetModemId, nm.DID, nm.ModemSn, nm.NetModemName, nm.ActiveStatus, nm.IsMobile, nm.HwType, "+
 			"gl.LatDegrees, gl.LatMinutes, gl.LatSeconds, "+
 			"gl.LongDegrees, gl.LongMinutes, gl.LongSeconds, gl.LatSouth, gl.LongWest, "+
 			"r.Size, buc.ManufacturerPartNum AS Buc, lnb.ManufacturerPartNum AS Lnb").
