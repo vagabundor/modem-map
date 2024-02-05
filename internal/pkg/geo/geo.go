@@ -39,7 +39,7 @@ func ToDecimal(latdms DMS, longdms DMS) DD {
 func StringToDecimal(input string) (DD, error) {
 	var result DD
 
-	// Регулярное выражение для координат с N/S, E/W
+	// Coordinates with N/S, E/W
 	reWithDirection := regexp.MustCompile(`LAT = ([\d\.]+)(N|S) LONG = ([\d\.]+)(E|W)`)
 	matchesWithDirection := reWithDirection.FindStringSubmatch(input)
 
@@ -47,7 +47,7 @@ func StringToDecimal(input string) (DD, error) {
 		return parseCoordinates(matchesWithDirection)
 	}
 
-	// Регулярное выражение для простых числовых координат
+	// Simple coordinates
 	reSimple := regexp.MustCompile(`LAT-LONG: \[([\d\.]+) ([\d\.]+)\]`)
 	matchesSimple := reSimple.FindStringSubmatch(input)
 

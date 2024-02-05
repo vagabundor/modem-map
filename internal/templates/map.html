@@ -258,7 +258,10 @@
     // Check if coordinates are not zero
     if (object.GeoLocation.Lat !== 0 && object.GeoLocation.Long !== 0) {
       // Check  if modem is not Incomplete/NeveApplied/Deactivated
-      if (object.Status == "Nominal" && object.ActiveStatus !== 0) {
+      if (object.Status !== "Incomplete" &&
+          object.Status !== "Deactivated" &&
+          object.Status !== "NeverApplied" &&
+          object.ActiveStatus !== 0) {
         var marker = L.marker([
           object.GeoLocation.Lat,
           object.GeoLocation.Long,
