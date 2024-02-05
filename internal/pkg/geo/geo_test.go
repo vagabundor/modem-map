@@ -69,11 +69,11 @@ func TestStringToDecimal(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name:  "Valid Coordinates",
-			input: "LAT = 68.96968N LONG = 33.05082E",
+			name:  "Valid Coordinates with Direction",
+			input: "LAT-LONG : [LAT = 68.96984N LONG = 33.05111E]",
 			expected: DD{
-				Lat:  68.96968,
-				Long: 33.05082,
+				Lat:  68.96984,
+				Long: 33.05111,
 			},
 			expectErr: false,
 		},
@@ -91,6 +91,21 @@ func TestStringToDecimal(t *testing.T) {
 				Long: -20.67890,
 			},
 			expectErr: false,
+		},
+		{
+			name:  "Valid Simple Coordinates",
+			input: "LAT-LONG: [64.522 40.526]",
+			expected: DD{
+				Lat:  64.522,
+				Long: 40.526,
+			},
+			expectErr: false,
+		},
+		{
+			name:      "Coordinates Not Found",
+			input:     "LAT-LONG:[ Not Found ]",
+			expected:  DD{},
+			expectErr: true,
 		},
 	}
 

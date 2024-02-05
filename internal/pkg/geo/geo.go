@@ -36,16 +36,42 @@ func ToDecimal(latdms DMS, longdms DMS) DD {
 }
 
 // StringToDecimal converts String to DD
-// STRING: "LAT-LONG : [LAT = 68.96968N LONG = 33.05082E]"
 func StringToDecimal(input string) (DD, error) {
 	var result DD
-	re := regexp.MustCompile(`LAT = ([\d\.]+)([NS]) LONG = ([\d\.]+)([EW])`)
-	matches := re.FindStringSubmatch(input)
 
-	if len(matches) != 5 {
-		return result, fmt.Errorf("invalid format")
+	// Регулярное выражение для координат с N/S, E/W
+	reWithDirection := regexp.MustCompile(`LAT = ([\d\.]+)(N|S) LONG = ([\d\.]+)(E|W)`)
+	matchesWithDirection := reWithDirection.FindStringSubmatch(input)
+
+	if len(matchesWithDirection) == 5 {
+		return parseCoordinates(matchesWithDirection)
 	}
 
+	// Регулярное выражение для простых числовых координат
+	reSimple := regexp.MustCompile(`LAT-LONG: \[([\d\.]+) ([\d\.]+)\]`)
+	matchesSimple := reSimple.FindStringSubmatch(input)
+
+	if len(matchesSimple) == 3 {
+		lat, err := strconv.ParseFloat(matchesSimple[1], 64)
+		if err != nil {
+			return result, fmt.Errorf("invalid latitude")
+		}
+
+		long, err := strconv.ParseFloat(matchesSimple[2], 64)
+		if err != nil {
+			return result, fmt.Errorf("invalid longitude")
+		}
+
+		result.Lat = lat
+		result.Long = long
+		return result, nil
+	}
+
+	return result, fmt.Errorf("invalid format")
+}
+
+func parseCoordinates(matches []string) (DD, error) {
+	var result DD
 	lat, err := strconv.ParseFloat(matches[1], 64)
 	if err != nil {
 		return result, fmt.Errorf("invalid latitude")
@@ -64,6 +90,5 @@ func StringToDecimal(input string) (DD, error) {
 
 	result.Lat = lat
 	result.Long = long
-
 	return result, nil
 }
